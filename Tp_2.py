@@ -31,3 +31,6 @@ def main ()->None:
         opcion = validar_opcion(1, 8)
         if opcion == 8:
             cerrar_menu = True
+
+print("hola")
+
