@@ -32,6 +32,4 @@ def main ()->None:
         if opcion == 8:
             cerrar_menu = True
 
-print("hola")
-print("chau")
-print("Probando")
+main()
