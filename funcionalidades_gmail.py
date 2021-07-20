@@ -8,30 +8,25 @@ from email import encoders
 import mimetypes
 servicio = obtener_servicio()
 
-def crear_correo_con_adjunto(remitente,destinatario,asunto,texto_correo,archivo)->object:
+def crear_correo_con_adjunto(remitente,destinatario,asunto,texto_correo,adjunto)->object:
     correo = MIMEMultipart()
     correo ['destinatario'] = destinatario
     correo ['remitente'] = remitente
     correo['asunto'] = asunto
     mensaje = MIMEText(texto_correo)
     correo.attach(mensaje)
-    content_type, encoding = mimetypes.guess_type(archivo)
+    for archivo in adjunto:
+        content_type, encoding = mimetypes.guess_type(archivo)
+        main_type, sub_type = content_type.split('/', 1)
+        filename = os.path.basename(archivo)
+        f = open(archivo, 'rb')
+        myFile = MIMEBase(main_type,sub_type)
+        myFile.set_payload(f.read())
+        myFile.add_header('Content-Disposition','archivo',filename=filename)
+        encoders.encode_base64(myFile)
 
-    if content_type is None or encoding is not None:
-        content_type = 'application/octet-stream'
-    main_type, sub_type = content_type.split('/', 1)
-    if main_type == 'text':
-        fp = open(archivo, 'rb')
-        msg = MIMEText(fp.read(), _subtype=sub_type)
-        fp.close()
-    else:
-        fp = open(archivo, 'rb')
-        msg = MIMEBase(main_type, sub_type)
-        msg.set_payload(fp.read())
-        fp.close()
-    filename = os.path.basename(archivo)
-    msg.add_header('Content-Disposition', 'attachment', filename = filename)
-    correo.attach(mensaje)
+        f.close()
+        correo.attach(myFile)
 
     return {'raw': base64.urlsafe_b64encode(correo.as_string())}
 
@@ -40,8 +35,8 @@ def enviar_correo(servicio,email_usuario,mensaje):
     mensaje = servicio.users().messages().send(userdId=email_usuario,body={'raw':raw_string}).execute()
 
 archivo = ('Archivos\cadena.txt')
-
-raw_string = crear_correo_con_adjunto('sotelomartin343@gmail.com','lmsotelo@gmail.fi.uba.ar','tenes un mensaje','hola',archivo)
+raw_string = crear_correo_con_adjunto('lmsotelo@fi.uba.ar','sotelomartin343@gmail.com','tenes un mensaje','hola',archivo)
 enviar_correo(servicio,'lmsotelo@fi.uba.ar',raw_string)
+
 
 
