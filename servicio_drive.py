@@ -8,7 +8,7 @@ from google.auth.transport.requests import Request
 SCOPES = ['https://www.googleapis.com/auth/drive']
 
 #Archivo generado para la api
-ARCHIVO_SECRET_CLIENT = 'client_secret_drive.json'
+ARCHIVO_SECRET_CLIENT = 'client_drive.json'
 
 PERMISOS = ['https://www.googleapis.com/auth/drive']
 
@@ -69,3 +69,14 @@ def obtener_servicio() -> Resource:
     :return: service
     """
     return build(API_NAME, API_VERSION, credentials=generar_credenciales())
+
+servicio = obtener_servicio()
+results = servicio.files().list(
+        pageSize=10, fields="nextPageToken, files(id, name)").execute()
+items = results.get('files', [])
+if not items:
+    print('No files found.')
+else:
+    print('Files:')
+    for item in items:
+        print(u'{0} ({1})'.format(item['name'], item['id']))

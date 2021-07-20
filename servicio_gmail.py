@@ -12,7 +12,7 @@ SCOPES = [
 ]
 
 # Archivo generado para la API
-ARCHIVO_SECRET_CLIENT = 'client_secret.json'
+ARCHIVO_SECRET_CLIENT = 'client_gmail.json'
 
 
 def cargar_credenciales() -> Credentials:
