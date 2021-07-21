@@ -4,39 +4,53 @@ import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
-from email import encoders
+from email.mime.audio import MIMEAudio
+from email.mime.image import MIMEImage
 import mimetypes
 servicio = obtener_servicio()
 
-def crear_correo_con_adjunto(remitente,destinatario,asunto,texto_correo,adjunto)->object:
-    correo = MIMEMultipart()
-    correo ['destinatario'] = destinatario
-    correo ['remitente'] = remitente
-    correo['asunto'] = asunto
-    mensaje = MIMEText(texto_correo)
-    correo.attach(mensaje)
-    for archivo in adjunto:
-        content_type, encoding = mimetypes.guess_type(archivo)
-        main_type, sub_type = content_type.split('/', 1)
-        filename = os.path.basename(archivo)
-        f = open(archivo, 'rb')
-        myFile = MIMEBase(main_type,sub_type)
-        myFile.set_payload(f.read())
-        myFile.add_header('Content-Disposition','archivo',filename=filename)
-        encoders.encode_base64(myFile)
+def crear_mensaje_con_adjunto(sender, to, subject, message_text, file):
+    message = MIMEMultipart()
+    message['to'] = to
+    message['from'] = sender
+    message['subject'] = subject
 
-        f.close()
-        correo.attach(myFile)
+    msg = MIMEText(message_text)
+    message.attach(msg)
 
-    return {'raw': base64.urlsafe_b64encode(correo.as_string())}
+    (content_type, encoding) = mimetypes.guess_type(file)
 
+    if content_type is None or encoding is not None:
+        content_type = 'application/octet-stream'
+    (main_type, sub_type) = content_type.split('/', 1)
+    if main_type == 'text':
+        with open (file, 'rb') as f:
+            msg = MIMEText(f.read().decode('utf-8'),_subtype = sub_type)
+    elif main_type == 'image':
+        with open (file, 'rb') as f:
+            msg = MIMEImage(f.read(), _subtype=sub_type)
+        
+    elif main_type == 'audio':
+        with open (file, 'rb') as f:
+            msg = MIMEAudio(f.read(), _subtype=sub_type)
+    else:
+        with open (file,'rb') as f:
+            msg = MIMEBase(main_type, sub_type)
+            msg.set_payload(f.read())
+    filename = os.path.basename(file)
+    msg.add_header('Content-Disposition', 'attachment', filename=filename)
+    message.attach(msg)
+    raw_msg = base64.urlsafe_b64encode(message.as_string().encode('utf-8'))
+    return {'raw':raw_msg.decode('utf-8')}
 
-def enviar_correo(servicio,email_usuario,mensaje):
-    mensaje = servicio.users().messages().send(userdId=email_usuario,body={'raw':raw_string}).execute()
-
-archivo = ('Archivos\cadena.txt')
-raw_string = crear_correo_con_adjunto('lmsotelo@fi.uba.ar','sotelomartin343@gmail.com','tenes un mensaje','hola',archivo)
-enviar_correo(servicio,'lmsotelo@fi.uba.ar',raw_string)
+def enviar_correo(service, usuario_id, message):
+    try:
+        message = service.users().messages().send(userId=usuario_id, body=message).execute()
+        print ('Message Id: {}'.format(message['id']))
+        return message
+    except Exception as error:
+        print('An error occurred: {}'.format(error))
+        return None
 
 
 
