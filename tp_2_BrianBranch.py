@@ -1,5 +1,6 @@
 import os
 
+
 def validar_opcion(numero_min: int, numero_max: int) -> int:
     '''
     Nos permite validar para que solo se puedan ingresar ciertos números enteros.
@@ -13,6 +14,7 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
         decision = input("Intente nuevamente, ingrese su opción: ")
     return int(decision)
 
+
 def listar_archivos() -> None:
     contador = 0
     print("Listado de archivos de la carpeta actual (y subcarpetas): ")
@@ -22,7 +24,6 @@ def listar_archivos() -> None:
             contador += 1
             listado = os.path.join(ruta, nombre)
             print(f"{contador}.- {listado}")
-
 
 
 def crear_archivo():
@@ -83,5 +84,4 @@ def main ()->None:
             pass
         elif opcion == 8:
             cerrar_menu = True
-
 main()
