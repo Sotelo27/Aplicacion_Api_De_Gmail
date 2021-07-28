@@ -59,7 +59,32 @@ def listar_archivos_local() -> None:
 
 
 def menu_crear_archivo_y_carpeta():
-    pass
+    ruta_actual = os.getcwd()
+    print(f"Los archivos se crearan en la carpeta actual. Ruta: {ruta_actual}")
+    cerrar_menu = False
+    while not cerrar_menu:
+        print("""
+        1. Crear un archivo.
+        2. Crear una carpeta.
+        3. Cerrar el menú.""")
+        opcion = validar_opcion(1, 3)
+        if opcion == 1:
+            nombre_archivo = input("Ingrese el nombre para este archivo: ")
+            extension = input("Ingrese la extensión del archivo: ")
+            open(f"{nombre_archivo}.{extension}", "w")
+            print(f"El archivo {nombre_archivo}.{extension} fue creado satisfactoriamente.")
+        elif opcion == 2:
+            nombre = input("Ingrese el nombre para esta carpeta: ")
+            try:
+                os.mkdir(nombre)
+            except FileExistsError:
+                print(f"Error, la carpeta {nombre} ya existe.")
+            except:
+                print("Ha ocurrido un error.")
+            else:
+                print(f"La carpeta {nombre} fue creada satisfactoriamente.")
+        elif opcion == 3:
+                cerrar_menu = True
 
 
 def subir_archivo():
