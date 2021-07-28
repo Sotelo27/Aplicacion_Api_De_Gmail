@@ -13,6 +13,7 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
         decision = input("Intente nuevamente, ingrese su opción: ")
     return int(decision)
 
+
 def listar_archivos() -> None:
     contador = 0
     print("Listado de archivos de la carpeta actual (y subcarpetas): ")
