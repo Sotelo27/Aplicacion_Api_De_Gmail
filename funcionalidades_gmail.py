@@ -4,6 +4,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from apiclient import errors
 from base64 import urlsafe_b64decode
+import pickle
+import io
+import zipfile
 servicio = obtener_servicio()
 def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)->object:
     mensaje = MIMEText(texto_mensaje)
@@ -44,24 +47,34 @@ def detalles_del_email(servicio,id_mensaje,format = 'metadata',metadata_headers 
     except Exception as e:
         print(e)
         return None
-def descargar_adjunto(servicio,usuario_id,mensaje_id,store_dir = ''):
+def descargar_adjunto(service,user_id,msg_id,store_dir = ''):
     try:
-        message = servicio.users().messages().get(userId = 'me', id = mensaje_id).execute()
+        message = service.users().messages().get(userId = 'me', id = msg_id).execute()
 
         for part in message['payload']['parts']:
             newvar = part['body']
         if 'attachmentId' in newvar:
             att_id = newvar['attachmentId']
-            att = servicio.users().messages().attachments().get(userId = usuario_id, messageId = mensaje_id, id = att_id).execute()
+            att = service.users().messages().attachments().get(userId = user_id, messageId = msg_id, id = att_id).execute()
             data = att['data']
             file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
+            print("Cargando archivos...")
             print(part['filename'])
-            path = ''.join([store_dir, part['filename']])
-            f = open(path, 'wb')
-            f.write(file_data)
-            f.close()
+            path = ''.join([store_dir, part['filename']])   
+            archivo = open(path+".bin","wb")
+            pickle.dump(file_data,archivo)
+            archivo.close
+            convertir_a_binario(file_data,part)
+            
     except errors.HttpError as error:
         print ('An error occurred: {%s}'.format(error))
+
+def convertir_a_binario(archivo,nombre_archivo):
+    if '.zip' not in nombre_archivo["filename"]:
+        print("archivo erroneo")
+    else:    
+        z = zipfile.ZipFile(io.BytesIO(archivo))
+        z.extractall()
 
 def opciones_busqueda():
     print('Opciones de consulta de mensaje:')
