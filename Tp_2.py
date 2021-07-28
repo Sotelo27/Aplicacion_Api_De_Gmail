@@ -4,7 +4,6 @@ import os
 def validar_opcion(numero_min: int, numero_max: int) -> int:
     '''
     Nos permite validar para que solo se puedan ingresar ciertos números enteros.
-
     PRE: Recibe dos números enteros que simbolizan la cantidad de opciones.
     POST: Devuelve un número entero dentro del rango de opciones.
     '''
@@ -15,7 +14,19 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
     return int(decision)
 
 
-def listar_archivos() -> None:
+def menu_listar_archivos() -> None:
+    print("""
+    Por favor elija una opción:
+    1. Mostrar los archivos locales.
+    2. Mostrar los archivos en remoto.""")
+    opcion = validar_opcion(1, 2)
+    if opcion == 1:
+        listar_archivos_local()
+    elif opcion == 2:
+        print("Funcionalidad no implementada.")
+
+
+def listar_archivos_local() -> None:
     contador = 0
     print("Listado de archivos de la carpeta actual (y subcarpetas): ")
     directorio = os.getcwd()
@@ -69,7 +80,7 @@ def main ()->None:
         """)
         opcion = validar_opcion(1, 8)
         if opcion == 1:
-            listar_archivos()
+            menu_listar_archivos()
         elif opcion == 2:
             pass
         elif opcion == 3:
