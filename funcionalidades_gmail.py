@@ -47,6 +47,7 @@ def detalles_del_email(servicio,id_mensaje,format = 'metadata',metadata_headers 
     except Exception as e:
         print(e)
         return None
+        
 def descargar_adjunto(service,user_id,msg_id,store_dir = ''):
     try:
         message = service.users().messages().get(userId = 'me', id = msg_id).execute()
@@ -60,16 +61,22 @@ def descargar_adjunto(service,user_id,msg_id,store_dir = ''):
             file_data = base64.urlsafe_b64decode(data.encode('UTF-8'))
             print("Cargando archivos...")
             print(part['filename'])
-            path = ''.join([store_dir, part['filename']])   
-            archivo = open(path+".bin","wb")
+            path = ''.join([store_dir, part['filename']]) 
+            base = os.path.basename(path)
+            lista = os.path.splitext(base)
+            archivo_bin = lista[0] + ".bin" 
+            archivo = open(archivo_bin,"wb")
             pickle.dump(file_data,archivo)
             archivo.close
-            convertir_a_binario(file_data,part)
+            descomprimir_archivo(file_data,part)
+            
+    except errors.HttpError as error:
+        print ('An error occurred: {%s}'.format(error))
             
     except errors.HttpError as error:
         print ('An error occurred: {%s}'.format(error))
 
-def convertir_a_binario(archivo,nombre_archivo):
+def descomprimir_archivo(archivo,nombre_archivo):
     if '.zip' not in nombre_archivo["filename"]:
         print("archivo erroneo")
     else:    
