@@ -15,16 +15,18 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
 
 
 def menu_listar_archivos() -> None:
+    print(f"La ruta actual es {os.getcwd()}")
     cerrar_menu = False
     while not cerrar_menu:
         print("""
-        En este menú puede listar los archivos o navegar a través de carpetas.
+        ¿Qué desea hacer?
         1. Mostrar los archivos locales.
         2. Mostrar los archivos en remoto.
         3. Abrir una carpeta existente.
         4. Volver una carpeta atrás.
         5. Cerrar el menú.
         """)
+        ruta_actual = os.getcwd()
         opcion = validar_opcion(1, 5)
         if opcion == 1:
             listar_archivos_local()
@@ -34,12 +36,18 @@ def menu_listar_archivos() -> None:
             nombre = input("Ingrese el nombre de la carpeta a abrir: ")
             try:
                 os.chdir(nombre)
+            except FileNotFoundError:
+                print("Error, esa carpeta no existe o no es subcarpeta de la actual.")
             except:
                 print("Ha ocurrido un error.")
             else:
+                ruta_actual = os.path.join(ruta_actual, nombre)
                 print("Carpeta abierta exitosamente.")
+                print(f"La ruta actual es {ruta_actual}")
         elif opcion == 4:
             os.chdir("..")
+            ruta_actual = os.getcwd()
+            print(f"La ruta actual es {ruta_actual}")
         elif opcion == 5:
             cerrar_menu = True
 
@@ -107,7 +115,7 @@ def actualizar_entregas_via_mail():
     pass
 
 
-def main ()->None:
+def main () -> None:
     cerrar_menu = False
     while not cerrar_menu:
         print("""
