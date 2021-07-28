@@ -4,7 +4,6 @@ import os
 def validar_opcion(numero_min: int, numero_max: int) -> int:
     '''
     Nos permite validar para que solo se puedan ingresar ciertos números enteros.
-
     PRE: Recibe dos números enteros que simbolizan la cantidad de opciones.
     POST: Devuelve un número entero dentro del rango de opciones.
     '''
