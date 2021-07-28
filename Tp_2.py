@@ -15,29 +15,50 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
 
 
 def menu_listar_archivos() -> None:
-    print("""
-    Por favor elija una opción:
-    1. Mostrar los archivos locales.
-    2. Mostrar los archivos en remoto.""")
-    opcion = validar_opcion(1, 2)
-    if opcion == 1:
-        listar_archivos_local()
-    elif opcion == 2:
-        print("Funcionalidad no implementada.")
+    cerrar_menu = False
+    while not cerrar_menu:
+        print("""
+        En este menú puede listar los archivos o navegar a través de carpetas.
+        1. Mostrar los archivos locales.
+        2. Mostrar los archivos en remoto.
+        3. Abrir una carpeta existente.
+        4. Volver una carpeta atrás.
+        5. Cerrar el menú.
+        """)
+        opcion = validar_opcion(1, 5)
+        if opcion == 1:
+            listar_archivos_local()
+        elif opcion == 2:
+            print("Funcionalidad no implementada.")
+        elif opcion == 3:
+            nombre = input("Ingrese el nombre de la carpeta a abrir: ")
+            try:
+                os.chdir(nombre)
+            except:
+                print("Ha ocurrido un error.")
+            else:
+                print("Carpeta abierta exitosamente.")
+        elif opcion == 4:
+            os.chdir("..")
+        elif opcion == 5:
+            cerrar_menu = True
 
 
 def listar_archivos_local() -> None:
-    contador = 0
+    contador = 1
     print("Listado de archivos de la carpeta actual (y subcarpetas): ")
     directorio = os.getcwd()
     for ruta, subcarpetas, archivos in os.walk(directorio):
-        for nombre in archivos:
-            contador += 1
-            listado = os.path.join(ruta, nombre)
-            print(f"{contador}.- {listado}")
+        subnivel = ruta.replace(directorio, '').count(os.sep)
+        separacion_carpetas = ' ' * 8 * (subnivel)
+        print(f"{separacion_carpetas}{contador} » {os.path.basename(ruta)}/")
+        separacion_archivos = ' ' * 8 * (subnivel + 1)
+        for nombre_archivos in archivos:
+            print(f"{separacion_archivos}{nombre_archivos}")
+        contador += 1
 
 
-def crear_archivo():
+def menu_crear_archivo_y_carpeta():
     pass
 
 
@@ -82,7 +103,7 @@ def main ()->None:
         if opcion == 1:
             menu_listar_archivos()
         elif opcion == 2:
-            pass
+            menu_crear_archivo_y_carpeta()
         elif opcion == 3:
             pass
         elif opcion == 4:
