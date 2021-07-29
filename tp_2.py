@@ -176,7 +176,7 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
     su alumno respectivo, y tiene como objetivo actualizar las entregas llegadas
     por los alumnos siempre y cuando, este mismo no se haya leido.
     '''
-    print(os.getcwd())
+    print("Creando carpeta en ",os.getcwd())
     mensajes_email = buscar_email(servicio,"is:unread",["INBOX"])
     #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
     if mensajes_email is None:
