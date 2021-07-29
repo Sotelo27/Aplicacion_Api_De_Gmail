@@ -20,14 +20,13 @@ def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)
     raw_msg = base64.urlsafe_b64encode(mensaje.as_string().encode('utf-8'))
     return {'raw':raw_msg.decode('utf-8')}
 
-def enviar_correo(servicio:object, usuario_id:str, mensaje:object):
+def enviar_correo(servicio, usuario_id:str, mensaje:object)->object:
     try:
-        message = servicio.users().messages().send(userId = usuario_id, body = mensaje).execute()
+        message = servicio.users().messages().send(userId=usuario_id, body=mensaje).execute()
         print ('Message Id: {}'.format(message['id']))
-        return message
     except Exception as error:
         print('An error occurred: {}'.format(error))
-        return None
+    return message
 
 def leer_archivo_alumnos(archivo_alumnos,email_padron_asignado:dict)->None:
     with open(archivo_alumnos, mode = 'r', newline='', encoding="UTF-8") as archivo_csv:
@@ -52,7 +51,6 @@ def validaciones(email:str,asunto:str,nombre_archivo:str,archivo_alumnos)->bool:
         validar = False
     else:
         validar = True
-    
     return validar
 
 def definir_errores(correo,archivo_padrones_alumnos,archivo_alumnos)->bool:
@@ -112,7 +110,7 @@ def buscar_email(servicio,cadena_string,etiquetas_id):
     except Exception as e:
         return None
 
-def detalles_del_email(servicio,id_mensaje,format = 'metadata',metadata_headers = []):
+def detalles_del_email(servicio,id_mensaje,format = 'full',metadata_headers = []):
     try:
         detalles_mensaje = servicio.users().messages().get(userId = 'me',id = id_mensaje,format = "full",metadataHeaders = metadata_headers).execute()
         return detalles_mensaje
