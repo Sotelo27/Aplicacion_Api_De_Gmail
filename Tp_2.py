@@ -1,5 +1,4 @@
 import os
-from posixpath import lexists, split
 from googleapiclient.discovery import Resource
 from servicio_gmail import obtener_servicio
 import base64
