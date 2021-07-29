@@ -194,7 +194,7 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
     '''
     mensajes_email = buscar_email(servicio,"is:unread",["INBOX"])
     #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
-    if mensajes_email is None:
+    if mensajes_email == None:
         print("No hay mensajes para actualizar")
     else:
         os.chdir(carpeta_evaluacion)
@@ -207,9 +207,11 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
             #se consiguen los detalles del mismo
             padron = recepcion_de_entregas(servicio,correo,archivo_alumnos)
             #se verificara si es correcta o no la entrega del mismo
-        if padron != "no es valido":
-            anidar_archivos_alumno(servicio, padron, carpeta_evaluacion, archivo_alumnos,
-            archivo_docente_alumnos, id_mensaje)
+        if not padron == "no es valido":
+            anidar_archivos_alumno(servicio,padron,carpeta_evaluacion,archivo_alumnos,archivo_docente_alumnos,id_mensaje)
+    os.chdir("..")
+    os.chdir("..")
+    os.chdir("..")
 
 
 def anidar_archivos_alumno(
@@ -564,18 +566,15 @@ def menu_listar_archivos() -> None:
         print("""
         ¿Qué desea hacer?
         1. Mostrar los archivos locales.
-        2. Mostrar los archivos en remoto.
-        3. Abrir una carpeta existente.
-        4. Volver una carpeta atrás.
-        5. Cerrar el menú.
+        2. Abrir una carpeta existente.
+        3. Volver una carpeta atrás.
+        4. Cerrar el menú.
         """)
         ruta_actual = os.getcwd()
-        opcion = validar_opcion(1, 5)
+        opcion = validar_opcion(1, 4)
         if opcion == 1:
             listar_archivos_local()
         elif opcion == 2:
-            print("Funcionalidad no implementada.")
-        elif opcion == 3:
             nombre = input("Ingrese el nombre de la carpeta a abrir: ")
             try:
                 os.chdir(nombre)
@@ -585,11 +584,11 @@ def menu_listar_archivos() -> None:
                 ruta_actual = os.path.join(ruta_actual, nombre)
                 print("Carpeta abierta exitosamente.")
                 print(f"La ruta actual es {ruta_actual}")
-        elif opcion == 4:
+        elif opcion == 3:
             os.chdir("..")
             ruta_actual = os.getcwd()
             print(f"La ruta actual es {ruta_actual}")
-        elif opcion == 5:
+        elif opcion == 4:
             cerrar_menu = True
 
 
@@ -681,36 +680,30 @@ def main () -> None:
         Por favor, elija una opción.
         1. Listar archivos de la carpeta actual.
         2. Crear un archivo.
-        3. Subir un archivo.
-        4. Consultar correos.
-        5. Sincronizar.
-        6. Generar carpetas de una evaluación.
-        7. Actualizar entregas de alumnos vía mail
-        8. Salir
+        3. Consultar correos.
+        4. Generar carpetas de una evaluación.
+        5. Actualizar entregas de alumnos vía mail
+        6. Salir
         """)
         # Hipotesis, al no usar la aplicacion drive decidimos por cambiar una
-        # de las opciones a una opcion (concretamente la .4).
+        # de las opciones a una opcion (concretamente la .3).
         # Esta opción permite visualizar dependiendo el operador de busqueda
         # indicado por el usuario, correos asociados.
-        opcion = validar_opcion(1, 8)
+        opcion = validar_opcion(1, 6)
         if opcion == 1:
             menu_listar_archivos()
         elif opcion == 2:
             menu_crear_archivo_y_carpeta()
         elif opcion == 3:
-            print("Opcion no habilitada")
-        elif opcion == 4:
             consultar_mensaje(servicio)
-        elif opcion == 5:
-            print("Opcion no habilitada")
-        elif opcion == 6:
+        elif opcion == 4:
             generar_carpetas_de_una_evaluacion(servicio)
-        elif opcion == 7:
+        elif opcion == 5:
             while validacion_ruta is False:
                 carpeta_evaluacion = input("Ingrese el nombre de la carpeta de la evaluacion: ")
                 validacion_ruta = validar_ruta(ruta,carpeta_evaluacion)
             if validacion_ruta is True:
                 actualizar_entregas(servicio,carpeta_evaluacion)
-        elif opcion == 8:
+        elif opcion == 6:
             cerrar_menu = True
 main()
