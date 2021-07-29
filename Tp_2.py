@@ -1,6 +1,6 @@
 import os
 from googleapiclient.discovery import Resource
-from servicio_gmail import obtener_servicio
+from service_gmail import obtener_servicio
 import base64
 from base64 import urlsafe_b64decode
 from email.mime.text import MIMEText
@@ -136,7 +136,6 @@ def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->
     confirmando o no su entrega
 
     '''
-
     validar_entrega = definir_errores(correo,archivo_alumnos) #Validacion del correo
     asunto = "Entrega evaluacion" 
     payload = correo["payload"]
