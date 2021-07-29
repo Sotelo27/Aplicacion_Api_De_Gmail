@@ -1,21 +1,21 @@
 import os
-from posixpath import lexists, split
-from googleapiclient.discovery import Resource
-from servicio_gmail import obtener_servicio
-import base64
-from base64 import urlsafe_b64decode
-from email.mime.text import MIMEText
-from apiclient import errors
 import pickle
 import zipfile
 import io
-import os
 import csv
+import base64
+from posixpath import lexists, split
+from base64 import urlsafe_b64decode
+from email.mime.text import MIMEText
+from googleapiclient.discovery import Resource
+from apiclient import errors
+from servicio_gmail import obtener_servicio
 
 
-def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)->object:
+def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje: str) -> object:
     '''
-    Pre:recibe al usuario que envia, como el destinatario, el asunto del mensaje, y el cuerpo a escribir.
+    Pre:recibe al usuario que envia, como el destinatario, el asunto del mensaje,
+    y el cuerpo a escribir.
 
     Post: crea un objeta que contiene los diferentes valores del correo.
     '''
@@ -26,11 +26,13 @@ def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)
     raw_msg = base64.urlsafe_b64encode(mensaje.as_string().encode('utf-8'))
     return {'raw':raw_msg.decode('utf-8')}
 
-def enviar_correo(servicio:Resource, usuario_id:str, mensaje:object)->object:
+
+def enviar_correo(servicio: Resource, usuario_id: str, mensaje: object) -> object:
     '''
     Pre: recibe la credenciales de gmail, como la id del usuario y el cuerpo del mensaje en objeto.
 
-    Post: envia el mensaje con la informacion dada por el usuario, y lo retorna en objeto, para ser usado mas tarde.
+    Post: envia el mensaje con la informacion dada por el usuario, y lo retorna en objeto,
+    para ser usado mas tarde.
     '''
     try:
         message = servicio.users().messages().send(userId=usuario_id, body=mensaje).execute()
@@ -39,98 +41,124 @@ def enviar_correo(servicio:Resource, usuario_id:str, mensaje:object)->object:
         print('A ocurrido un error: {}'.format(error))
     return message
 
-def leer_archivo_alumnos(archivo:str,diccionario_datos:dict,opcion:int)->None:
+
+def leer_archivo_alumnos(archivo: str, diccionario_datos: dict, opcion: int) -> None:
     '''
-    Procedimiento que recibe el archivo de los alumnos y modifica un diccionario vacio a partir del mismo, sera usado para las validaciones.
-    dependiendo la opcion que reciba, la lectura y la creacion del diccionario variara.Dicha opcion es arbitraria decidia por el creador de la apliacion.
+    Procedimiento que recibe el archivo de los alumnos y modifica un diccionario vacio a partir
+    del mismo, sera usado para las validaciones.
+    dependiendo la opcion que reciba, la lectura y la creacion del diccionario variara.
+    Dicha opcion es arbitraria decidia por el creador de la apliacion.
     '''
     if opcion == 1:
-        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv1: 
+        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv1:
             csv_reader = csv.reader(archivo_csv1, delimiter=',')
             for columna in csv_reader:
-                diccionario_datos[columna[1]] = columna[2] #se le asigna a la determinada llave el valor , la llave tomando como el padron en el archivo y el valor siendo el email.
+                diccionario_datos[columna[1]] = columna[2]
+                #se le asigna a la determinada llave el valor
+                #la llave tomando como el padron en el archivo y el valor siendo el email.
     elif opcion == 2:
-        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv2: 
+        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv2:
             csv_reader = csv.reader(archivo_csv2, delimiter=',')
             for columna in csv_reader:
-                diccionario_datos[columna[1]] = columna[0] #se le asigna a la determinada llave el valor , la llave tomando como el padron en el archivo y el valor siendo el nombre.
+                diccionario_datos[columna[1]] = columna[0]
+                #se le asigna a la determinada llave el valor
+                #La llave tomando como el padron en el archivo y el valor siendo el nombre.
     elif opcion == 3:
-        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv3: 
+        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv3:
             csv_reader = csv.reader(archivo_csv3, delimiter=',')
             for columna in csv_reader:
-                diccionario_datos[columna[1]] = columna[0] #se le asigna a la determinada llave el valor , la llave tomando al profesor y el valor el nombre del alumno
+                diccionario_datos[columna[1]] = columna[0]
+                #se le asigna a la determinada llave el valor
+                #la llave tomando al profesor y el valor el nombre del alumno
 
-def validaciones(email:str,asunto:str,nombre_archivo_adjunto:str,archivo_alumnos:str)->bool:
+
+def validaciones(email: str, asunto: str,nombre_archivo_adjunto: str, archivo_alumnos: str) -> bool:
     '''
-    Pre:recibe el email, el asunto, el nombre del archivo adjunto y el archivo del correspondiente mensaje
+    Pre: recibe el email, el asunto, el nombre del archivo adjunto y el archivo del
+    correspondiente mensaje
 
-    Post:a partir de las validaciones, se verifica si el correo cumple con las condiciones pedidas por los docentes.
+    Post: a partir de las validaciones, se verifica si el correo cumple con las condiciones
+    pedidas por los docentes.
     '''
     validar = False
     email_padron_asignado = {} #Diccionario que sera utilizado para guardar padrones e emails
     numerico = asunto.isnumeric() #Comprobacion de que el asunto es un numero.
-    leer_archivo_alumnos(archivo_alumnos,email_padron_asignado,1) #Se lee los archivos, y a su vez se modifica el diccionario
+    leer_archivo_alumnos(archivo_alumnos,email_padron_asignado,1)
+    #Se lee los archivos, y a su vez se modifica el diccionario
     if numerico == False:
         validar = False
-    elif ".zip" not in nombre_archivo_adjunto: #Si no tiene la extension .zip el adjunto, su validacion sera falsa.
-        validar = False  
-    elif asunto not in email_padron_asignado: #Aunque cumpla la condicion numerica, se debe verificar que se encuentra verificado dicho padron.
+    elif ".zip" not in nombre_archivo_adjunto:
+    #Si no tiene la extension .zip el adjunto, su validacion sera falsa.
         validar = False
-    elif email not in email_padron_asignado.values(): #Si el email pertenece a la Facultad o es de un medio externo.
+    elif asunto not in email_padron_asignado:
+    #Aunque cumpla la condicion numerica, se verifica que se encuentra verificado dicho padron.
         validar = False
-    elif email_padron_asignado[asunto] != email: #Si el email, como viceversa tambien funcionara, de que el padron e email son del mismo alumno.
-        validar = False 
+    elif email not in email_padron_asignado.values():
+    #Si el email pertenece a la Facultad o es de un medio externo.
+        validar = False
+    elif email_padron_asignado[asunto] != email:
+    #Si el email, como viceversa tambien funcionara, de que el padron e email son del mismo alumno.
+        validar = False
     else:
         validar = True
-    
+
     return validar
 
-def eliminar_caracteres(cadena_str:str)->str:
-    '''
-    Esta funcion tiene como objetivo obtener solo el correo del valor que se obtiene de From: y eliminar asi los archivos innecesarios
 
+def eliminar_caracteres(cadena_str: str) -> str:
+    '''
+    Esta funcion tiene como objetivo obtener solo el correo del valor que se obtiene de From: y
+    eliminar asi los archivos innecesarios
     Pre: recibe una cadena str
 
-    Post: la divide, elimina los caracteres y se crea un nuevo str que solo contendra el email del usuario que envio el mensaje.
+    Post: la divide, elimina los caracteres y se crea un nuevo str que solo contendra
+    el email del usuario que envio el mensaje.
     '''
     lista = cadena_str.split() #Se crea una lista
     email = lista.pop() #Se obtiene el ultimo caracter, que sera siempre el email
     caracteres_a_eliminar = "> <" #Se elimina los caracteres innecesarios predeterminados el email
     for letras in range(len(caracteres_a_eliminar)):
-        email = email.replace(caracteres_a_eliminar[letras],"") #Se lo reemplaza por solo un espacio vacio
+        email = email.replace(caracteres_a_eliminar[letras],"")
+        #Se lo reemplaza por solo un espacio vacio
     return email
 
-def definir_errores(correo:object,archivo_alumnos:str)->bool:
-    '''
-    Pre: recibe el correo y sus partes, como a su vez la dirrecion del archivo que contiene informacion de los alumnos.
 
-    Post: devuelve un booleano que a partir de la funcion validaciones, comprobara si hay un error en el mismo.
+def definir_errores(correo: object, archivo_alumnos: str) -> bool:
+    '''
+    Pre: recibe el correo y sus partes, como a su vez la dirrecion del archivo que contiene
+    informacion de los alumnos.
+
+    Post: devuelve un booleano que a partir de la funcion validaciones, comprobara
+    si hay un error en el mismo.
     '''
     validar_entrega = True
     payload = correo['payload']
-    encabezados = payload.get("headers") # Se separa el correo en sus distintas partes para utilizarlo en las validaciones.
+    encabezados = payload.get("headers")
+    # Se separa el correo en sus distintas partes para utilizarlo en las validaciones.
     partes = payload.get('parts')
     for part in partes:
-        nombre_archivo = part["filename"] #Nombre del archivo para comprobar su extension.
-    for valores in encabezados: 
-        nombre = valores.get("name") 
+        nombre_archivo = part["filename"]
+        #Nombre del archivo para comprobar su extension.
+    for valores in encabezados:
+        nombre = valores.get("name")
         valor = valores.get("value")
-        if nombre.lower() == "subject": 
+        if nombre.lower() == "subject":
             asunto = valor
         if nombre.lower() == "from":
             destinatario = valor
     email = eliminar_caracteres(destinatario)
-    validar_entrega = validaciones(email,asunto,nombre_archivo,archivo_alumnos) 
-    
+    validar_entrega = validaciones(email,asunto,nombre_archivo,archivo_alumnos)
+
     return validar_entrega
 
-def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->None:
+
+def recepcion_de_entregas(servicio: Resource, correo: object, archivo_alumnos: str) -> None:
     '''
-    Procedimiento que tiene como objetivo verificar el correo y a partir de alli , construir el correo que se enviara a los alumnos
-    confirmando o no su entrega
+    Procedimiento que tiene como objetivo verificar el correo y a partir de alli,
+    construir el correo que se enviara a los alumnos confirmando o no su entrega
     '''
     validar_entrega = definir_errores(correo,archivo_alumnos) #Validacion del correo
-    asunto = "Entrega evaluacion" 
+    asunto = "Entrega evaluacion"
     payload = correo["payload"]
     encabezados = payload.get("headers")
     for valores in encabezados:
@@ -152,28 +180,42 @@ def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->
         padron = "no es valido"
     return padron
 
-def actualizar_entregas(servicio:Resource,archivo_alumnos:str,archivo_docente_alumno:str)->None:
+
+def actualizar_entregas(
+    servicio: Resource, archivo_alumnos: str,
+    archivo_docente_alumno: str) -> None:
     '''
-    Procedimiento que recibe solamente el archivo de alumnos y el de docente con su alumno respectivo, y tiene como objetivo actualizar las entregas llegadas por los alumnos
-    siempre y cuando, este mismo no se haya leido .
+    Procedimiento que recibe solamente el archivo de alumnos y el de docente con
+    su alumno respectivo, y tiene como objetivo actualizar las entregas llegadas por los
+    alumnos siempre y cuando, este mismo no se haya leido.
     '''
-    mensajes_email = buscar_email(servicio,"is:unread",["INBOX"]) #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
+    mensajes_email = buscar_email(servicio,"is:unread",["INBOX"])
+    #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
     if mensajes_email == None:
         print("No hay mensajes para actualizar")
     else:
-        for email in mensajes_email: #Se itera sobre la misma para conseguir la id del mismo y acceder a cada mensaje
+        for email in mensajes_email:
+            #Se itera sobre la misma para conseguir la id del mismo y acceder a cada mensaje
             id_mensaje = email["id"]
-            correo = detalles_del_email(servicio,id_mensaje) #se consiguen los detalles del mismo
-            padron = recepcion_de_entregas(servicio,correo,archivo_alumnos) #se verificara si es correcta o no la entrega del mismo
+            correo = detalles_del_email(servicio,id_mensaje)
+            #se consiguen los detalles del mismo
+            padron = recepcion_de_entregas(servicio,correo,archivo_alumnos)
+            #se verificara si es correcta o no la entrega del mismo
         if not padron == "no es valido":
             listar_archivos_local()
             carpeta_evaluacion = input("Ingrese el nombre de la carpeta de la evaluacion: ")
-            anidar_archivos_alumno(servicio,padron,carpeta_evaluacion,archivo_alumnos,archivo_docente_alumno,id_mensaje)
+            anidar_archivos_alumno(
+                servicio, padron,carpeta_evaluacion,
+                archivo_alumnos, archivo_docente_alumno, id_mensaje)
 
-def anidar_archivos_alumno(servicio:Resource,padron:str,carpeta_evaluacion:str,archivo_alumnos:str,archivo_docente_alumno:str,id_mensaje:str)->None:
+
+def anidar_archivos_alumno(
+    servicio: Resource, padron: str, carpeta_evaluacion: str,
+    archivo_alumnos: str, archivo_docente_alumno: str, id_mensaje: str) -> None:
     '''
-    Procedimiento que tiene como objetivo acceder a las distintas carpetas del sistemas de carpteas, leyendo los archivos y los el padron dado
-    para luego descomprimirlo en la carpeta correspondiente  
+    Procedimiento que tiene como objetivo acceder a las distintas carpetas del sistemas de carpteas,
+    leyendo los archivos y los el padron dado para luego descomprimirlo
+    en la carpeta correspondiente.
     '''
     nombre_padron = {}# Diccionario que tiene como llave el padron y el valor su nombre
     alumno_profesor = {} # Diccionario que tiene como llave el alumno y el valor el profesor
@@ -185,8 +227,9 @@ def anidar_archivos_alumno(servicio:Resource,padron:str,carpeta_evaluacion:str,a
     os.chdir(profesor)
     os.chdir(nombre)
     descargar_adjunto(servicio,"me",id_mensaje)
-     
-def buscar_email(servicio:Resource,cadena_string:str,etiquetas_id:str)->object:
+
+
+def buscar_email(servicio: Resource, cadena_string: str, etiquetas_id: str) -> object:
     '''
     Pre: recibe las credenciales de gmail, una cadena string que sera un operador de busqueda, como la etiqueta tambien.
 
@@ -204,7 +247,8 @@ def buscar_email(servicio:Resource,cadena_string:str,etiquetas_id:str)->object:
         items_mensajes = None
     return items_mensajes
 
-def detalles_del_email(servicio:Resource,id_mensaje:str,format='metadata',metadata_headers:list = [])->object:
+
+def detalles_del_email(servicio: Resource, id_mensaje: str, format='metadata', metadata_headers: list = []) -> object:
     '''
     Pre: recibe las credenciales de gmail, la id unica del mensaje, como el formato de codoficacion y la metadata de los encabezados
 
@@ -217,7 +261,8 @@ def detalles_del_email(servicio:Resource,id_mensaje:str,format='metadata',metada
         print(e)
     return detalles_mensaje
 
-def descargar_adjunto(servicio:Resource,usuario_id:str,mensaje_id:str,directorio:str = '')->None:
+
+def descargar_adjunto(servicio: Resource, usuario_id: str, mensaje_id: str, directorio: str = '') -> None:
     '''
     Procedimiento que recibe las credenciales de gmail, el usuario de la aplicacion, la id unica del mensaje y el directorio de descarga
     tiene como objetivo acceder al cuerpo del mensaje para asi descargar los archivos adjuntos que posea el mismo.
@@ -246,7 +291,8 @@ def descargar_adjunto(servicio:Resource,usuario_id:str,mensaje_id:str,directorio
     except errors.HttpError as error:
         print ('A ocurrido un error: {%s}'.format(error))
 
-def descomprimir_archivo(archivo:bytes,nombre_archivo:str)->None:
+
+def descomprimir_archivo(archivo: bytes, nombre_archivo: str) -> None:
     '''
     Procedimiento que hace uso de la libreria zipfiles, para la descompresion de los archivos enviados al correo del usuario.
     '''
@@ -258,7 +304,8 @@ def descomprimir_archivo(archivo:bytes,nombre_archivo:str)->None:
         archivo_a_descomprimir.extractall()
         print("Archivos descomprimidos")
 
-def opciones_busqueda()->None:
+
+def opciones_busqueda() -> None:
     '''
     Procedimiento que solo printea por pantalla al usuario los metodos de busca por filtros que tiene a disposicion.
     '''
@@ -267,7 +314,8 @@ def opciones_busqueda()->None:
     '\n .3 Si desea buscar todos los correos que tienen un adjunto'
     '\n .4 Por nombre de archivo adjunto \n .5 Si desea buscar por asuntos \n .6 Leidos \n .7 No leidos')
 
-def consultar_mensaje(servicio:Resource):
+
+def consultar_mensaje(servicio: Resource) -> None:
     '''
     Procedimiento que recibe las credenciales de gmail, como a su vez presenta al usuario los metodos que tendra para consultar 
     algun mensaje especificado de la manera que el usuario decida.
@@ -308,7 +356,8 @@ def consultar_mensaje(servicio:Resource):
             email = detalles_del_email(servicio,messageId) #Se consiguen los detalles del cada mensaje
             leer_correos(email) #Se los leera 
 
-def dividir_cuerpo_mensaje(servicio:Resource, partes:object)->None:
+
+def dividir_cuerpo_mensaje(servicio: Resource, partes: object) -> None:
     '''
     Procedimiento que tiene como objetivo mostrar en pantalla la informacion del cuerpo del mensaje, si es un adjunto, si a su vez posee un adjunto entre otros.
     recibe las partes del mismo y las credenciales de gmail para su decodificacion y su lectura legible.
@@ -331,8 +380,9 @@ def dividir_cuerpo_mensaje(servicio:Resource, partes:object)->None:
                     print("Adjunto: ",arc)
             else:
                 print("Adjunto: ",archivo)
-                
-def leer_correos(servicio:Resource,mensajes_email:object)->None:
+
+      
+def leer_correos(servicio: Resource, mensajes_email: object) -> None:
     '''
     Procedimiento que recibe los mensajes del email y se los printea en pantalla a una manera estetica,subdividiendo las partes
     del determinado objeto en sos nombres y valores
@@ -356,6 +406,7 @@ def leer_correos(servicio:Resource,mensajes_email:object)->None:
     print("\n")
     print("="*50)
 
+
 def validar_opcion(numero_min: int, numero_max: int) -> int:
     '''
     Nos permite validar para que solo se puedan ingresar ciertos números enteros.
@@ -368,7 +419,8 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
         decision = input("Intente nuevamente, ingrese su opción: ")
     return int(decision)
 
-def generar_carpetas_de_una_evaluacion(servicio:Resource)->None:
+
+def generar_carpetas_de_una_evaluacion(servicio: Resource) -> None:
     '''
     Procedimiento que tiene como objetivo crear las carpetas anidadaes en los 3 niveles especificados, con la informacion brindada por un correo especificado por el usuario
     aun que dicho correo debe seguir ciertas condiciones, caso contrario, no creara dicha carpeta.
@@ -398,6 +450,7 @@ def generar_carpetas_de_una_evaluacion(servicio:Resource)->None:
         descargar_adjunto(servicio,"me",id_mensaje) #se descarga el adjunto y se crea un bin del .zip
         generar_carpeta_con_asunto(asunto) #finalmente se genera la carpeta
 
+
 def generar_carpeta_con_asunto(asunto: str) -> None:
     '''
     Procedimiento que crea la carpeta de 3 niveles con el asunto dado y los archivos descomprimidos, con dichos nombres de los archivos
@@ -426,6 +479,7 @@ def generar_carpeta_con_asunto(asunto: str) -> None:
             else:
                 os.mkdir(nombre_alumnos)
                 os.chdir("..")
+
 
 def menu_listar_archivos() -> None:
     '''
@@ -467,6 +521,7 @@ def menu_listar_archivos() -> None:
         elif opcion == 5:
             cerrar_menu = True
         
+
 def listar_archivos_local() -> None:
     '''
     Procedimiento que muestra los archivos y subcarpetas en el directorio actual.
@@ -482,6 +537,7 @@ def listar_archivos_local() -> None:
         for nombre_archivos in archivos:
             print(f"{separacion_archivos}{nombre_archivos}")
         contador += 1
+
 
 def menu_crear_archivo_y_carpeta() -> None:
     '''
@@ -513,6 +569,7 @@ def menu_crear_archivo_y_carpeta() -> None:
                 print(f"La carpeta {nombre} fue creada satisfactoriamente.")
         elif opcion == 3:
                 cerrar_menu = True
+
 
 def main () -> None:
     '''
@@ -560,5 +617,4 @@ def main () -> None:
                 print("El archivo alumnos.csv aun no se a descomprimido")
         elif opcion == 8:
             cerrar_menu = True
-
 main()
