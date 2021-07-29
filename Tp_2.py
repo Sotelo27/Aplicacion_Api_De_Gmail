@@ -1,4 +1,5 @@
 import os
+from posixpath import lexists, split
 from googleapiclient.discovery import Resource
 from service_gmail import obtener_servicio
 import base64
@@ -453,6 +454,9 @@ def generar_carpeta_con_asunto(asunto: str) -> None:
                 os.chdir("..")
 
 def menu_listar_archivos() -> None:
+    '''
+    Procedimiento que permite al usuario navegar por las carpetas y listar subcarpetas/archivos.
+    '''
     print(f"La ruta actual es {os.getcwd()}")
     cerrar_menu = False
     while not cerrar_menu:
@@ -490,6 +494,9 @@ def menu_listar_archivos() -> None:
             cerrar_menu = True
         
 def listar_archivos_local() -> None:
+    '''
+    Procedimiento que muestra los archivos y subcarpetas en el directorio actual.
+    '''
     contador = 1
     print("Listado de archivos de la carpeta actual (y subcarpetas): ")
     directorio = os.getcwd()
@@ -502,7 +509,10 @@ def listar_archivos_local() -> None:
             print(f"{separacion_archivos}{nombre_archivos}")
         contador += 1
 
-def menu_crear_archivo_y_carpeta():
+def menu_crear_archivo_y_carpeta() -> None:
+    '''
+    Procedimiento que permite al usuario crear subcarpetas/archivos en determinado directorio.
+    '''
     ruta_actual = os.getcwd()
     print(f"Los archivos se crearan en la carpeta actual. Ruta: {ruta_actual}")
     cerrar_menu = False
