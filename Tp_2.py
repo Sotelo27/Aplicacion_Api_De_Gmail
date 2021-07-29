@@ -1,8 +1,6 @@
-
 import os
-from posixpath import lexists, split
 from googleapiclient.discovery import Resource
-from service_gmail import obtener_servicio
+from servicio_gmail import obtener_servicio
 import base64
 from base64 import urlsafe_b64decode
 from email.mime.text import MIMEText
@@ -132,14 +130,13 @@ def definir_errores(correo:object,archivo_alumnos:str)->bool:
     return validar_entrega
 
 def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->None:
-
     '''
 
     Procedimiento que tiene como objetivo verificar el correo y a partir de alli , construir el correo que se enviara a los alumnos
     confirmando o no su entrega
 
     '''
-    
+
     validar_entrega = definir_errores(correo,archivo_alumnos) #Validacion del correo
     asunto = "Entrega evaluacion" 
     payload = correo["payload"]
@@ -583,3 +580,5 @@ def main () -> None:
                 print("El archivo alumnos.csv aun no se a descomprimido")
         elif opcion == 8:
             cerrar_menu = True
+
+main()
