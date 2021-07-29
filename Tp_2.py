@@ -194,7 +194,7 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
     '''
     mensajes_email = buscar_email(servicio,"is:unread",["INBOX"])
     #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
-    if mensajes_email is None:
+    if mensajes_email == None:
         print("No hay mensajes para actualizar")
     else:
         os.chdir(carpeta_evaluacion)
@@ -207,9 +207,11 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
             #se consiguen los detalles del mismo
             padron = recepcion_de_entregas(servicio,correo,archivo_alumnos)
             #se verificara si es correcta o no la entrega del mismo
-        if padron != "no es valido":
-            anidar_archivos_alumno(servicio, padron, carpeta_evaluacion, archivo_alumnos,
-            archivo_docente_alumnos, id_mensaje)
+        if not padron == "no es valido":
+            anidar_archivos_alumno(servicio,padron,carpeta_evaluacion,archivo_alumnos,archivo_docente_alumnos,id_mensaje)
+    os.chdir("..")
+    os.chdir("..")
+    os.chdir("..")
 
 
 def anidar_archivos_alumno(
