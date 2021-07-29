@@ -1,7 +1,7 @@
 import os
 from posixpath import lexists, split
 from googleapiclient.discovery import Resource
-from service_gmail import obtener_servicio
+from servicio_gmail import obtener_servicio
 import base64
 from base64 import urlsafe_b64decode
 from email.mime.text import MIMEText
@@ -12,12 +12,12 @@ import io
 import os
 import csv
 
+
 def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)->object:
     '''
     Pre:recibe al usuario que envia, como el destinatario, el asunto del mensaje, y el cuerpo a escribir.
 
     Post: crea un objeta que contiene los diferentes valores del correo.
-
     '''
     mensaje = MIMEText(texto_mensaje)
     mensaje['to'] = destinatario
@@ -31,7 +31,6 @@ def enviar_correo(servicio:Resource, usuario_id:str, mensaje:object)->object:
     Pre: recibe la credenciales de gmail, como la id del usuario y el cuerpo del mensaje en objeto.
 
     Post: envia el mensaje con la informacion dada por el usuario, y lo retorna en objeto, para ser usado mas tarde.
-
     '''
     try:
         message = servicio.users().messages().send(userId=usuario_id, body=mensaje).execute()
@@ -44,7 +43,6 @@ def leer_archivo_alumnos(archivo:str,diccionario_datos:dict,opcion:int)->None:
     '''
     Procedimiento que recibe el archivo de los alumnos y modifica un diccionario vacio a partir del mismo, sera usado para las validaciones.
     dependiendo la opcion que reciba, la lectura y la creacion del diccionario variara.Dicha opcion es arbitraria decidia por el creador de la apliacion.
-
     '''
     if opcion == 1:
         with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv1: 
@@ -67,7 +65,6 @@ def validaciones(email:str,asunto:str,nombre_archivo_adjunto:str,archivo_alumnos
     Pre:recibe el email, el asunto, el nombre del archivo adjunto y el archivo del correspondiente mensaje
 
     Post:a partir de las validaciones, se verifica si el correo cumple con las condiciones pedidas por los docentes.
-
     '''
     validar = False
     email_padron_asignado = {} #Diccionario que sera utilizado para guardar padrones e emails
@@ -90,13 +87,11 @@ def validaciones(email:str,asunto:str,nombre_archivo_adjunto:str,archivo_alumnos
 
 def eliminar_caracteres(cadena_str:str)->str:
     '''
-
     Esta funcion tiene como objetivo obtener solo el correo del valor que se obtiene de From: y eliminar asi los archivos innecesarios
 
     Pre: recibe una cadena str
 
     Post: la divide, elimina los caracteres y se crea un nuevo str que solo contendra el email del usuario que envio el mensaje.
-
     '''
     lista = cadena_str.split() #Se crea una lista
     email = lista.pop() #Se obtiene el ultimo caracter, que sera siempre el email
@@ -110,7 +105,6 @@ def definir_errores(correo:object,archivo_alumnos:str)->bool:
     Pre: recibe el correo y sus partes, como a su vez la dirrecion del archivo que contiene informacion de los alumnos.
 
     Post: devuelve un booleano que a partir de la funcion validaciones, comprobara si hay un error en el mismo.
-
     '''
     validar_entrega = True
     payload = correo['payload']
@@ -132,10 +126,8 @@ def definir_errores(correo:object,archivo_alumnos:str)->bool:
 
 def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->None:
     '''
-
     Procedimiento que tiene como objetivo verificar el correo y a partir de alli , construir el correo que se enviara a los alumnos
     confirmando o no su entrega
-
     '''
     validar_entrega = definir_errores(correo,archivo_alumnos) #Validacion del correo
     asunto = "Entrega evaluacion" 
@@ -162,12 +154,9 @@ def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->
 
 def actualizar_entregas(servicio:Resource,archivo_alumnos:str,archivo_docente_alumno:str)->None:
     '''
-    
     Procedimiento que recibe solamente el archivo de alumnos y el de docente con su alumno respectivo, y tiene como objetivo actualizar las entregas llegadas por los alumnos
     siempre y cuando, este mismo no se haya leido .
-
     '''
-
     mensajes_email = buscar_email(servicio,"is:unread",["INBOX"]) #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
     if mensajes_email == None:
         print("No hay mensajes para actualizar")
@@ -199,13 +188,10 @@ def anidar_archivos_alumno(servicio:Resource,padron:str,carpeta_evaluacion:str,a
      
 def buscar_email(servicio:Resource,cadena_string:str,etiquetas_id:str)->object:
     '''
-
     Pre: recibe las credenciales de gmail, una cadena string que sera un operador de busqueda, como la etiqueta tambien.
 
     Post: devuelve un objeto que contiene las partes del mensaje, con los parametros indicados por el usuario para su busqueda.
-
     '''
-
     try:
         lista_mensaje = servicio.users().messages().list(userId = 'me',labelIds = etiquetas_id,q = cadena_string).execute()
         items_mensajes = lista_mensaje.get('messages')
@@ -220,13 +206,10 @@ def buscar_email(servicio:Resource,cadena_string:str,etiquetas_id:str)->object:
 
 def detalles_del_email(servicio:Resource,id_mensaje:str,format='metadata',metadata_headers:list = [])->object:
     '''
-
     Pre: recibe las credenciales de gmail, la id unica del mensaje, como el formato de codoficacion y la metadata de los encabezados
 
     Post: se obtiene todo los datos del mensaje en un formato completo, y se los retorna en un objeto para su uso a posterior.
-
     '''
-
     try:
         detalles_mensaje = servicio.users().messages().get(userId = 'me',id = id_mensaje,format = "full",metadataHeaders = metadata_headers).execute()
     except Exception as e:
@@ -286,10 +269,8 @@ def opciones_busqueda()->None:
 
 def consultar_mensaje(servicio:Resource):
     '''
-
     Procedimiento que recibe las credenciales de gmail, como a su vez presenta al usuario los metodos que tendra para consultar 
     algun mensaje especificado de la manera que el usuario decida.
-
     '''
     opciones_busqueda()
     seleccionar_via_consulta = int(input("Eliga a continuacion: " ))
@@ -329,12 +310,9 @@ def consultar_mensaje(servicio:Resource):
 
 def dividir_cuerpo_mensaje(servicio:Resource, partes:object)->None:
     '''
-
     Procedimiento que tiene como objetivo mostrar en pantalla la informacion del cuerpo del mensaje, si es un adjunto, si a su vez posee un adjunto entre otros.
     recibe las partes del mismo y las credenciales de gmail para su decodificacion y su lectura legible.
-
     '''
-
     if partes:
         for valores in partes: #Se itera sobre el objeto
             archivo = valores.get("filename") #Se obtiene el nombre del archivo en caso de tener
@@ -356,10 +334,8 @@ def dividir_cuerpo_mensaje(servicio:Resource, partes:object)->None:
                 
 def leer_correos(servicio:Resource,mensajes_email:object)->None:
     '''
-
     Procedimiento que recibe los mensajes del email y se los printea en pantalla a una manera estetica,subdividiendo las partes
     del determinado objeto en sos nombres y valores
-
     '''
     payload = mensajes_email['payload']
     encabezados = payload.get("headers")
@@ -396,7 +372,6 @@ def generar_carpetas_de_una_evaluacion(servicio:Resource)->None:
     '''
     Procedimiento que tiene como objetivo crear las carpetas anidadaes en los 3 niveles especificados, con la informacion brindada por un correo especificado por el usuario
     aun que dicho correo debe seguir ciertas condiciones, caso contrario, no creara dicha carpeta.
-
     '''
     correo_con_evaluacion = input("Ingrese a continuacion el correo que a enviado los datos de la evaluacion: ")#Se busca el correo que posee la informacion para crear las carpetas.
     operador_de_busqueda_remitente = "from:" + correo_con_evaluacion #Los operadores que se deben cumplir, el correo ingresado por el usuario
@@ -427,7 +402,6 @@ def generar_carpeta_con_asunto(asunto: str) -> None:
     '''
     Procedimiento que crea la carpeta de 3 niveles con el asunto dado y los archivos descomprimidos, con dichos nombres de los archivos
     y la informacion que contienen los mismos
-
     '''
     ruta = os.getcwd()
     os.mkdir(asunto)
@@ -542,11 +516,8 @@ def menu_crear_archivo_y_carpeta() -> None:
 
 def main () -> None:
     '''
-
     Ahi estara el menu general del programa, teniendo acceso a sus distintas funcionalidades
-    
     como accesos
-
     '''
     servicio = obtener_servicio()
     cerrar_menu = False
