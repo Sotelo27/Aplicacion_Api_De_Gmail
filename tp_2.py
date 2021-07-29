@@ -13,12 +13,10 @@ from apiclient import errors
 from googleapiclient.discovery import Resource
 from servicio_gmail import obtener_servicio
 
-
 def crear_correo(remitente: str, destinatario: str, asunto: str, texto_mensaje: str) -> object:
     '''
     PRE: recibe al usuario que envia, como el destinatario, el asunto del mensaje,
     y el cuerpo a escribir.
-
     POST: crea un objeta que contiene los diferentes valores del correo.
     '''
     mensaje = MIMEText(texto_mensaje)
@@ -32,7 +30,6 @@ def crear_correo(remitente: str, destinatario: str, asunto: str, texto_mensaje: 
 def enviar_correo(servicio:Resource, usuario_id: str, mensaje: object) -> object:
     '''
     PRE: recibe la credenciales de gmail, como la id del usuario y el cuerpo del mensaje en objeto.
-
     POST: envia el mensaje con la informacion dada por el usuario, y lo retorna en objeto,
     para ser usado mas tarde.
     '''
@@ -52,27 +49,16 @@ def leer_archivo_alumnos(archivo: str, diccionario_datos: dict, opcion: int) -> 
     Dicha opcion es arbitraria decidia por el creador de la apliacion.
     '''
     if opcion == 1:
-        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv1:
-            csv_reader = csv.reader(archivo_csv1, delimiter=',')
-            for columna in csv_reader:
-                diccionario_datos[columna[1]] = columna[2]
-            #se le asigna a la determinada llave el valor,
-            #la llave tomando como el padron en el archivo y el valor siendo el email.
-    elif opcion == 2:
-        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv2:
-            csv_reader = csv.reader(archivo_csv2, delimiter=',')
-            for columna in csv_reader:
-                diccionario_datos[columna[1]] = columna[0]
-            #se le asigna a la determinada llave el valor
-            #la llave tomando como el padron en el archivo y el valor siendo el nombre.
-    elif opcion == 3:
-        with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv3:
-            csv_reader = csv.reader(archivo_csv3, delimiter=',')
-            for columna in csv_reader:
-                diccionario_datos[columna[1]] = columna[0]
-            #se le asigna a la determinada llave el valor
-            #la llave tomando al profesor y el valor el nombre del alumno.
-
+        valor_1 = 1
+        valor_2 = 2
+    else:
+        valor_1 = 1
+        valor_2 = 0
+    with open(archivo, mode = 'r', newline='', encoding="UTF-8") as archivo_csv1:
+        csv_reader = csv.reader(archivo_csv1, delimiter=',')
+        for columna in csv_reader:
+            diccionario_datos[columna[valor_1]] = columna[valor_2]
+        #se le asigna a la determinada llave el valor,
 
 def validaciones(
     email: str, asunto: str, nombre_archivo_adjunto: str,
@@ -80,11 +66,10 @@ def validaciones(
     '''
     PRE: Recibe el email, el asunto, el nombre del archivo adjunto y el
     archivo del correspondiente mensaje.
-
     POST: A partir de las validaciones, se verifica si el correo cumple con las
     condiciones pedidas por los docentes.
     '''
-    validar = False
+    validar = True
     email_padron_asignado:dict = {}
     #Diccionario que sera utilizado para guardar padrones e emails
     numerico = asunto.isnumeric()
@@ -105,8 +90,6 @@ def validaciones(
     elif email_padron_asignado[asunto] != email:
     #Si el email, como viceversa tambien funcionara, de que el padron e email son del mismo alumno.
         validar = False
-    else:
-        validar = True
 
     return validar
 
@@ -116,7 +99,6 @@ def eliminar_caracteres(cadena_str: str) -> str:
     Esta funcion tiene como objetivo obtener solo el correo del valor que
     se obtiene de From: y eliminar así, los archivos innecesarios
     PRE: Recibe una cadena str
-
     POST: La divide, elimina los caracteres y se crea un nuevo str que solo contendra el
     email del usuario que envio el mensaje.
     '''
@@ -136,7 +118,6 @@ def definir_errores(correo: object, archivo_alumnos: str) -> bool:
     '''
     PRE: Recibe el correo y sus partes, como a su vez la dirrecion del archivo que
     contiene informacion de los alumnos.
-
     POST: Devuelve un booleano que a partir de la funcion validaciones,
     comprobara si hay un error en el mismo.
     '''
@@ -195,6 +176,7 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
     su alumno respectivo, y tiene como objetivo actualizar las entregas llegadas
     por los alumnos siempre y cuando, este mismo no se haya leido.
     '''
+    print(os.getcwd())
     mensajes_email = buscar_email(servicio,"is:unread",["INBOX"])
     #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
     if mensajes_email is None:
@@ -214,9 +196,7 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
             anidar_archivos_alumno(servicio, padron, archivo_alumnos,
             archivo_docente_alumnos, id_mensaje)
     os.chdir("..")
-    os.chdir("..")
-    os.chdir("..")
-
+    
 
 def anidar_archivos_alumno(
     servicio: Resource, padron: str, archivo_alumnos: str,
@@ -243,7 +223,6 @@ def buscar_email(servicio: Resource, cadena_string: str, etiquetas_id: str) -> o
     '''
     PRE: Recibe las credenciales de gmail, una cadena string que sera un
     operador de busqueda, como la etiqueta tambien.
-
     POST: Devuelve un objeto que contiene las partes del mensaje, con los parametros
     indicados por el usuario para su busqueda.
     '''
@@ -269,7 +248,6 @@ def detalles_del_email(
     '''
     PRE: Recibe las credenciales de gmail, la id unica del mensaje, como el formato
     de codoficacion y la metadata de los encabezados.
-
     POST: Se obtiene todo los datos del mensaje en un formato completo, y se los
     retorna en un objeto para su uso a posterior.
     '''
@@ -530,7 +508,6 @@ def generar_carpeta_con_asunto(servicio: Resource, asunto: str, id_mensaje: str)
     '''
     Procedimiento que crea la carpeta de 3 niveles con el asunto dado y los archivos
     descomprimidos, con dichos nombres de los archivos y la informacion que contienen los mismos.
-
     '''
     os.mkdir(asunto)
     os.chdir(asunto)
@@ -559,7 +536,7 @@ def generar_carpeta_con_asunto(servicio: Resource, asunto: str, id_mensaje: str)
                 os.mkdir(nombre_alumnos)
                 os.chdir("..")
     os.chdir("..")
-
+    
 
 def menu_listar_archivos() -> None:
     '''
@@ -647,18 +624,22 @@ def menu_crear_archivo_y_carpeta() -> None:
 def validar_ruta(ruta: str, carpeta: str) -> bool:
     '''
     PRE: recibe la ruta de inicio, junto a la carpeta que se busca.
-
     POST: se verifica si dicha ruta existe y se lo informa al usuario,
     devuelve un bool para continuar el programa.
     '''
     ruta_nueva = ruta + "\\" + carpeta
     validacion = False
-    if os.path.isdir(ruta_nueva):
+    
+    if len(carpeta) == 0:
+        print('La carpeta no existe.')
+        validacion = False
+    elif os.path.isdir(ruta_nueva):
         print('La carpeta existe')
         validacion = True
     else:
         print('La carpeta no existe.')
         validacion = False
+    if validacion == False:
         continuar = input("Si desea reingresar presione 1, caso contrario 2: ")
         if continuar == "1":
             validacion = False
@@ -675,9 +656,9 @@ def main () -> None:
     '''
     servicio = obtener_servicio()
     cerrar_menu = False
-    ruta = os.getcwd()
     while not cerrar_menu:
         validacion_ruta = False
+        ruta = os.getcwd()
         print("""
         -***************************-
         Bienvenido al menú inicial
@@ -704,11 +685,13 @@ def main () -> None:
         elif opcion == 4:
             generar_carpetas_de_una_evaluacion(servicio)
         elif opcion == 5:
-            while validacion_ruta is False:
+            carpeta_evaluacion = ''
+            while not (validacion_ruta == True) :
                 carpeta_evaluacion = input("Ingrese el nombre de la carpeta de la evaluacion: ")
                 validacion_ruta = validar_ruta(ruta,carpeta_evaluacion)
             if validacion_ruta is True:
                 actualizar_entregas(servicio,carpeta_evaluacion)
         elif opcion == 6:
             cerrar_menu = True
+
 main()
