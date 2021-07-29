@@ -1,7 +1,7 @@
 import os
 from posixpath import lexists, split
 from googleapiclient.discovery import Resource
-from service_gmail import obtener_servicio
+from servicio_gmail import obtener_servicio
 import base64
 from base64 import urlsafe_b64decode
 from email.mime.text import MIMEText
@@ -160,7 +160,7 @@ def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->
         padron = "no es valido"
     return padron
 
-def actualizar_entregas(servicio:Resource,archivo_alumnos:str,archivo_docente_alumno:str)->None:
+def actualizar_entregas(servicio:Resource,carpeta_evaluacion:str)->None:
     '''
     
     Procedimiento que recibe solamente el archivo de alumnos y el de docente con su alumno respectivo, y tiene como objetivo actualizar las entregas llegadas por los alumnos
@@ -172,14 +172,15 @@ def actualizar_entregas(servicio:Resource,archivo_alumnos:str,archivo_docente_al
     if mensajes_email == None:
         print("No hay mensajes para actualizar")
     else:
+        os.chdir(carpeta_evaluacion)
+        archivo_alumnos = "alumnos.csv"
+        archivo_docente_alumnos = 'docente-alumnos.csv'
         for email in mensajes_email: #Se itera sobre la misma para conseguir la id del mismo y acceder a cada mensaje
             id_mensaje = email["id"]
             correo = detalles_del_email(servicio,id_mensaje) #se consiguen los detalles del mismo
             padron = recepcion_de_entregas(servicio,correo,archivo_alumnos) #se verificara si es correcta o no la entrega del mismo
         if not padron == "no es valido":
-            listar_archivos_local()
-            carpeta_evaluacion = input("Ingrese el nombre de la carpeta de la evaluacion: ")
-            anidar_archivos_alumno(servicio,padron,carpeta_evaluacion,archivo_alumnos,archivo_docente_alumno,id_mensaje)
+            anidar_archivos_alumno(servicio,padron,carpeta_evaluacion,archivo_alumnos,archivo_docente_alumnos,id_mensaje)
 
 def anidar_archivos_alumno(servicio:Resource,padron:str,carpeta_evaluacion:str,archivo_alumnos:str,archivo_docente_alumno:str,id_mensaje:str)->None:
     '''
@@ -192,7 +193,6 @@ def anidar_archivos_alumno(servicio:Resource,padron:str,carpeta_evaluacion:str,a
     nombre = nombre_padron[padron]
     leer_archivo_alumnos(archivo_docente_alumno,alumno_profesor,3)
     profesor = alumno_profesor[nombre]
-    os.chdir(carpeta_evaluacion)
     os.chdir(profesor)
     os.chdir(nombre)
     descargar_adjunto(servicio,"me",id_mensaje)
@@ -322,10 +322,10 @@ def consultar_mensaje(servicio:Resource):
         print("---"*5)
         
     else:
-        for email_message in mensajes_email: #Se itera sobre el para conseguir las id de cada uno
-            messageId = email_message['id']
-            email = detalles_del_email(servicio,messageId) #Se consiguen los detalles del cada mensaje
-            leer_correos(email) #Se los leera 
+        for mensajes in mensajes_email: #Se itera sobre el para conseguir las id de cada uno
+            mensaje_id = mensajes['id']
+            email = detalles_del_email(servicio,mensaje_id) #Se consiguen los detalles del cada mensaje
+            leer_correos(servicio,email) #Se los leera 
 
 def dividir_cuerpo_mensaje(servicio:Resource, partes:object)->None:
     '''
@@ -420,18 +420,18 @@ def generar_carpetas_de_una_evaluacion(servicio:Resource)->None:
             valor = valores.get("value")
             if nombre.lower() == 'subject': #se obtiene el asunto para poder crear la carpeta
                 asunto = valor
-        descargar_adjunto(servicio,"me",id_mensaje) #se descarga el adjunto y se crea un bin del .zip
-        generar_carpeta_con_asunto(asunto) #finalmente se genera la carpeta
+        generar_carpeta_con_asunto(servicio,asunto,id_mensaje) #finalmente se genera la carpeta
 
-def generar_carpeta_con_asunto(asunto: str) -> None:
+def generar_carpeta_con_asunto(servicio:Resource,asunto: str,id_mensaje:str) -> None:
     '''
     Procedimiento que crea la carpeta de 3 niveles con el asunto dado y los archivos descomprimidos, con dichos nombres de los archivos
     y la informacion que contienen los mismos
 
     '''
-    ruta = os.getcwd()
     os.mkdir(asunto)
     os.chdir(asunto)
+    ruta = os.getcwd()
+    descargar_adjunto(servicio,"me",id_mensaje) #se descarga el adjunto y se crea un bin del .zip
     with open(ruta + "\\docentes.csv", mode = 'r', newline='', encoding="UTF-8") as archivo_csv:
         csv_reader = csv.reader(archivo_csv, delimiter=',')
         for columna in csv_reader:
@@ -540,6 +540,29 @@ def menu_crear_archivo_y_carpeta() -> None:
         elif opcion == 3:
                 cerrar_menu = True
 
+def validar_ruta(ruta:str,carpeta:str)->bool:
+    '''
+    Pre:recibe la ruta de inicio, junto a la carpeta que se busca.
+
+    Post:se verifica si dicha ruta existe y se lo informa al usuario, devuelve un bool para continuar el programa.
+
+    '''
+    ruta_nueva = ruta + "\\" + carpeta
+    validacion = False
+    if os.path.isdir(ruta_nueva):
+        print('La carpeta existe')
+        validacion = True
+    else:
+        print('La carpeta no existe.')
+        validacion = False
+        continuar = input("Si desea reingresar presione 1, caso contrario 2: ")
+        if continuar == "1":
+            validacion = False
+        else:
+            print("\nVolviendo al menu principal...\n")
+            validacion = None
+    return validacion
+
 def main () -> None:
     '''
 
@@ -550,7 +573,9 @@ def main () -> None:
     '''
     servicio = obtener_servicio()
     cerrar_menu = False
+    ruta = os.getcwd()
     while not cerrar_menu:
+        validacion_ruta = False
         print("""
         -***************************-
         Bienvenido al menú inicial
@@ -559,34 +584,33 @@ def main () -> None:
         1. Listar archivos de la carpeta actual.
         2. Crear un archivo.
         3. Subir un archivo.
-        4. Descargar un archivo.
+        4. Consultar correos.
         5. Sincronizar.
         6. Generar carpetas de una evaluación.
         7. Actualizar entregas de alumnos vía mail
         8. Salir
         """)
+        #Hipotesis, al no usar la aplicacion drive decidimos por cambiar una de las opciones a una opcion (concretamente la .4)
+        # que permite visualizar dependiendo el operador de busqueda indicado por el usuario, correos asociados
         opcion = validar_opcion(1, 8)
         if opcion == 1:
             menu_listar_archivos()
         elif opcion == 2:
             menu_crear_archivo_y_carpeta()
         elif opcion == 3:
-            pass
+            print("Opcion no habilitada")
         elif opcion == 4:
-            pass
+            consultar_mensaje(servicio)
         elif opcion == 5:
-            pass
+            print("Opcion no habilitada")
         elif opcion == 6:
             generar_carpetas_de_una_evaluacion(servicio)
         elif opcion == 7:
-            try:
-                archivo_alumnos = open('alumnos.csv')
-                archivo_docente_alumno = open("docente-alumnos.csv")
-                archivo_alumnos = "alumnos.csv"
-                archivo_docente_alumno = 'docente-alumnos.csv'
-                actualizar_entregas(servicio,archivo_alumnos,archivo_docente_alumno)
-            except FileNotFoundError:
-                print("El archivo alumnos.csv aun no se a descomprimido")
+                while validacion_ruta == False:
+                    carpeta_evaluacion = input("Ingrese el nombre de la carpeta de la evaluacion: ")
+                    validacion_ruta = validar_ruta(ruta,carpeta_evaluacion)
+                if validacion_ruta == True:
+                    actualizar_entregas(servicio,carpeta_evaluacion)
         elif opcion == 8:
             cerrar_menu = True
 
