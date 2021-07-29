@@ -1,3 +1,6 @@
+'''
+Usaremos estos módulos a lo largo del programa.
+'''
 import os
 import pickle
 import zipfile
@@ -158,7 +161,7 @@ def definir_errores(correo: object, archivo_alumnos: str) -> bool:
     return validar_entrega
 
 
-def recepcion_de_entregas(servicio: Resource, correo: object, archivo_alumnos: str) -> None:
+def recepcion_de_entregas(servicio: Resource, correo: object, archivo_alumnos: str) -> str:
     '''
     Procedimiento que tiene como objetivo verificar el correo y a partir de alli,
     construir el correo que se enviara a los alumnos confirmando o no su entrega.
@@ -194,7 +197,7 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
     '''
     mensajes_email = buscar_email(servicio,"is:unread",["INBOX"])
     #Se chequea en la bandeja de entrada del usuario los mensajes no leidos
-    if mensajes_email == None:
+    if mensajes_email is None:
         print("No hay mensajes para actualizar")
     else:
         os.chdir(carpeta_evaluacion)
@@ -205,10 +208,11 @@ def actualizar_entregas(servicio: Resource, carpeta_evaluacion: str) -> None:
             id_mensaje = email["id"]
             correo = detalles_del_email(servicio,id_mensaje)
             #se consiguen los detalles del mismo
-            padron = recepcion_de_entregas(servicio,correo,archivo_alumnos)
+            padron = recepcion_de_entregas(servicio, correo, archivo_alumnos)
             #se verificara si es correcta o no la entrega del mismo
-        if not padron == "no es valido":
-            anidar_archivos_alumno(servicio,padron,carpeta_evaluacion,archivo_alumnos,archivo_docente_alumnos,id_mensaje)
+        if padron != "no es valido":
+            anidar_archivos_alumno(servicio, padron, archivo_alumnos,
+            archivo_docente_alumnos, id_mensaje)
     os.chdir("..")
     os.chdir("..")
     os.chdir("..")
@@ -222,9 +226,9 @@ def anidar_archivos_alumno(
     carpetas, leyendo los archivos y los el padron dado para luego descomprimirlo en la
     carpeta correspondiente.
     '''
-    nombre_padron = {}
+    nombre_padron: dict = {}
     # Diccionario que tiene como llave el padron y el valor su nombre
-    alumno_profesor = {}
+    alumno_profesor: dict = {}
     # Diccionario que tiene como llave el alumno y el valor el profesor
     leer_archivo_alumnos(archivo_alumnos,nombre_padron,2)
     nombre = nombre_padron[padron]
@@ -255,6 +259,7 @@ def buscar_email(servicio: Resource, cadena_string: str, etiquetas_id: str) -> o
             nextPageToken = items_mensajes.get('nextPageToken')
     except Exception as exc:
         items_mensajes = None
+        print(exc)
     return items_mensajes
 
 
@@ -271,9 +276,9 @@ def detalles_del_email(
     try:
         detalles_mensaje = servicio.users().messages().get(userId = 'me',id = id_mensaje,
         format = "full", metadataHeaders = metadata_headers).execute()
-    except Exception as e:
+    except Exception as exc:
         detalles_mensaje = None
-        print(e)
+        print(exc)
     return detalles_mensaje
 
 
@@ -315,7 +320,7 @@ def descargar_adjunto(
             #se descomprime el archivo dado
 
     except errors.HttpError as error:
-        print ('A ocurrido un error: {%s}'.format(error))
+        print ('A ocurrido un error: {}'.format(error))
 
 
 def descomprimir_archivo(archivo: bytes, nombre_archivo: str) -> None:
