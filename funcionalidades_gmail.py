@@ -7,7 +7,11 @@ from base64 import urlsafe_b64decode
 import pickle
 import io
 import zipfile
+import os
+import csv
+
 servicio = obtener_servicio()
+
 def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)->object:
     mensaje = MIMEText(texto_mensaje)
     mensaje['to'] = destinatario
@@ -25,8 +29,75 @@ def enviar_correo(servicio:object, usuario_id:str, mensaje:object):
         print('An error occurred: {}'.format(error))
         return None
 
-def definir_errores():
-    pass
+def leer_archivo_alumnos(archivo_alumnos,email_padron_asignado:dict)->None:
+    with open(archivo_alumnos, mode = 'r', newline='', encoding="UTF-8") as archivo_csv:
+        csv_reader = csv.reader(archivo_csv, delimiter=',')
+        for columna in csv_reader:
+            email_padron_asignado[columna[1]] = columna[2]
+      
+def validaciones(email:str,asunto:str,nombre_archivo:str,archivo_alumnos)->bool:
+    validar = False
+    email_padron_asignado = {}
+    numerico = asunto.isnumeric()
+    leer_archivo_alumnos(archivo_alumnos,email_padron_asignado)
+    if numerico == False:
+        validar = False
+    elif ".zip" not in nombre_archivo:
+        validar = False  
+    elif asunto not in email_padron_asignado:
+        validar = False
+    elif email not in email_padron_asignado.values():
+        validar = False
+    elif email_padron_asignado[asunto] != email:
+        validar = False
+    else:
+        validar = True
+    
+    return validar
+
+def definir_errores(correo,archivo_padrones_alumnos,archivo_alumnos)->bool:
+    validar_entrega = True
+    payload = correo['payload']
+    encabezados = payload.get("headers")
+    partes = payload.get('parts')
+    for part in partes:
+        nombre_archivo = part["filename"]
+    for valores in encabezados:
+        nombre = valores.get("name")
+        valor = valores.get("value")
+        if nombre.lower() == "subject":
+            asunto = valor
+        if nombre.lower() == "from":
+            email = valor
+    validar_entrega = validaciones(email,asunto,nombre_archivo,archivo_alumnos)
+    
+    return validar_entrega
+
+def recepcion_de_entregas(correo):
+    validar_entrega = definir_errores(correo,"archivo.txt")
+    asunto = "Entrega evaluacion"
+    payload = correo["payload"]
+    encabezados = payload.get("headers")
+    for valores in encabezados:
+        nombre = valores.get("name")
+        valor = valores.get("value")
+        if nombre.lower() == "from":
+            destinatario = valor
+    if validar_entrega == True:
+        texto_mensaje = "Entrega valida"
+        correo = crear_correo("me",destinatario,asunto,texto_mensaje)
+        enviar_correo(servicio,"me",correo)
+    else:
+        texto_mensaje = "Entrega invalida"
+        correo = crear_correo("me",destinatario,asunto,texto_mensaje)
+        enviar_correo(servicio,"me",correo)
+    
+def actualizar_entregas():
+    mensajes_email = buscar_email(servicio,"is:unread",["INBOX"])
+    for mensaje_email in mensajes_email:
+        id_mensaje = mensaje_email['id']
+        correo = detalles_del_email(servicio,id_mensaje)
+        recepcion_de_entregas(correo)
 
 def buscar_email(servicio,cadena_string,etiquetas_id):
     try:
@@ -40,6 +111,7 @@ def buscar_email(servicio,cadena_string,etiquetas_id):
         return items_mensajes
     except Exception as e:
         return None
+
 def detalles_del_email(servicio,id_mensaje,format = 'metadata',metadata_headers = []):
     try:
         detalles_mensaje = servicio.users().messages().get(userId = 'me',id = id_mensaje,format = "full",metadataHeaders = metadata_headers).execute()
@@ -47,7 +119,7 @@ def detalles_del_email(servicio,id_mensaje,format = 'metadata',metadata_headers 
     except Exception as e:
         print(e)
         return None
-        
+
 def descargar_adjunto(service,user_id,msg_id,store_dir = ''):
     try:
         message = service.users().messages().get(userId = 'me', id = msg_id).execute()
