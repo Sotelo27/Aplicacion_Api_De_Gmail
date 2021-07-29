@@ -85,7 +85,7 @@ def validaciones(email: str, asunto: str,nombre_archivo_adjunto: str, archivo_al
     numerico = asunto.isnumeric() #Comprobacion de que el asunto es un numero.
     leer_archivo_alumnos(archivo_alumnos,email_padron_asignado,1)
     #Se lee los archivos, y a su vez se modifica el diccionario
-    if numerico == False:
+    if numerico is False:
         validar = False
     elif ".zip" not in nombre_archivo_adjunto:
     #Si no tiene la extension .zip el adjunto, su validacion sera falsa.
@@ -168,7 +168,7 @@ def recepcion_de_entregas(servicio: Resource, correo: object, archivo_alumnos: s
             destinatario = valor #utilizado para contestarle al alumno
         elif nombre.lower() =="subject":
             padron = valor
-    if validar_entrega == True:
+    if validar_entrega is True:
         texto_mensaje = "Entrega valida"
         correo = crear_correo("me",destinatario,asunto,texto_mensaje)
         enviar_correo(servicio,"me",correo)
@@ -219,7 +219,7 @@ def anidar_archivos_alumno(
     '''
     nombre_padron = {}# Diccionario que tiene como llave el padron y el valor su nombre
     alumno_profesor = {} # Diccionario que tiene como llave el alumno y el valor el profesor
-    leer_archivo_alumnos(archivo_alumnos,nombre_padron,2) 
+    leer_archivo_alumnos(archivo_alumnos,nombre_padron,2)
     nombre = nombre_padron[padron]
     leer_archivo_alumnos(archivo_docente_alumno,alumno_profesor,3)
     profesor = alumno_profesor[nombre]
@@ -231,16 +231,20 @@ def anidar_archivos_alumno(
 
 def buscar_email(servicio: Resource, cadena_string: str, etiquetas_id: str) -> object:
     '''
-    Pre: recibe las credenciales de gmail, una cadena string que sera un operador de busqueda, como la etiqueta tambien.
+    Pre: recibe las credenciales de gmail, una cadena string que sera un operador de
+    busqueda, como la etiqueta tambien.
 
-    Post: devuelve un objeto que contiene las partes del mensaje, con los parametros indicados por el usuario para su busqueda.
+    Post: devuelve un objeto que contiene las partes del mensaje, con los
+    parametros indicados por el usuario para su busqueda.
     '''
     try:
-        lista_mensaje = servicio.users().messages().list(userId = 'me',labelIds = etiquetas_id,q = cadena_string).execute()
+        lista_mensaje = servicio.users().messages().list(userId = 'me',
+        labelIds = etiquetas_id,q = cadena_string).execute()
         items_mensajes = lista_mensaje.get('messages')
         nextPageToken = lista_mensaje.get('nextPageToken')
         while nextPageToken:
-            lista_mensaje = servicio.user().messages().list(userId = 'me',labelIds=etiquetas_id,q=cadena_string,pageToken=nextPageToken).execute()
+            lista_mensaje = servicio.user().messages().list(userId = 'me',
+            labelIds=etiquetas_id,q=cadena_string,pageToken=nextPageToken).execute()
             items_mensajes.extend(lista_mensaje.get('messages'))
             nextPageToken = items_mensajes.get('nextPageToken')
     except Exception as e:
@@ -248,24 +252,33 @@ def buscar_email(servicio: Resource, cadena_string: str, etiquetas_id: str) -> o
     return items_mensajes
 
 
-def detalles_del_email(servicio: Resource, id_mensaje: str, format='metadata', metadata_headers: list = []) -> object:
+def detalles_del_email(
+    servicio: Resource, id_mensaje: str, format='metadata',
+    metadata_headers: list = []) -> object:
     '''
-    Pre: recibe las credenciales de gmail, la id unica del mensaje, como el formato de codoficacion y la metadata de los encabezados
+    Pre: recibe las credenciales de gmail, la id unica del mensaje, como el
+    formato de codoficacion y la metadata de los encabezados
 
-    Post: se obtiene todo los datos del mensaje en un formato completo, y se los retorna en un objeto para su uso a posterior.
+    Post: se obtiene todo los datos del mensaje en un formato completo, y se
+    los retorna en un objeto para su uso a posterior.
     '''
     try:
-        detalles_mensaje = servicio.users().messages().get(userId = 'me',id = id_mensaje,format = "full",metadataHeaders = metadata_headers).execute()
+        detalles_mensaje = servicio.users().messages().get(userId = 'me',
+        id = id_mensaje,format = "full",metadataHeaders = metadata_headers).execute()
     except Exception as e:
         detalles_mensaje = None
         print(e)
     return detalles_mensaje
 
 
-def descargar_adjunto(servicio: Resource, usuario_id: str, mensaje_id: str, directorio: str = '') -> None:
+def descargar_adjunto(
+    servicio: Resource, usuario_id: str,
+    mensaje_id: str, directorio: str = '') -> None:
     '''
-    Procedimiento que recibe las credenciales de gmail, el usuario de la aplicacion, la id unica del mensaje y el directorio de descarga
-    tiene como objetivo acceder al cuerpo del mensaje para asi descargar los archivos adjuntos que posea el mismo.
+    Procedimiento que recibe las credenciales de gmail, el usuario de la aplicacion,
+    la id unica del mensaje y el directorio de descarga
+    tiene como objetivo acceder al cuerpo del mensaje para asi descargar los archivos
+    adjuntos que posea el mismo.
     '''
     try:
         mensaje = servicio.users().messages().get(userId = 'me', id = mensaje_id).execute()
@@ -274,74 +287,97 @@ def descargar_adjunto(servicio: Resource, usuario_id: str, mensaje_id: str, dire
             newvar = partes['body']
         if 'attachmentId' in newvar: #Se comprueba si tiene un adjunto
             att_id = newvar['attachmentId']
-            att = servicio.users().messages().attachments().get(userId = usuario_id, messageId = mensaje_id, id = att_id).execute() #Se utiliza el metodo de la api para obtener el adjunto
-            data = att['data'] 
-            informacion_archivo = base64.urlsafe_b64decode(data.encode('UTF-8')) #Se codifica dicha informacion a base64
+            att = servicio.users().messages().attachments().get(userId = usuario_id,
+            messageId = mensaje_id, id = att_id).execute()
+            #Se utiliza el metodo de la api para obtener el adjunto
+            data = att['data']
+            informacion_archivo = base64.urlsafe_b64decode(data.encode('UTF-8'))
+            #Se codifica dicha informacion a base64
             print("Cargando archivos...")
-            print(partes['filename']) #Impresion en pantalla del nombre del archivo
-            path = ''.join([directorio, partes['filename']]) #Se crea el directorio junto al archivo dado
+            print(partes['filename'])
+            #Impresion en pantalla del nombre del archivo
+            path = ''.join([directorio, partes['filename']])
+            #Se crea el directorio junto al archivo dado
             base = os.path.basename(path)
             lista = os.path.splitext(base)
-            archivo_bin = lista[0] + ".bin"  #Se lo convierte a binario, asi guardarlo
+            archivo_bin = lista[0] + ".bin"
+            #Se lo convierte a binario, asi guardarlo
             archivo = open(archivo_bin,"wb")
             pickle.dump(informacion_archivo,archivo)
             archivo.close
-            descomprimir_archivo(informacion_archivo,partes) #se descomprime el archivo dado 
-            
+            descomprimir_archivo(informacion_archivo,partes)
+            #se descomprime el archivo dado
+
     except errors.HttpError as error:
         print ('A ocurrido un error: {%s}'.format(error))
 
 
 def descomprimir_archivo(archivo: bytes, nombre_archivo: str) -> None:
     '''
-    Procedimiento que hace uso de la libreria zipfiles, para la descompresion de los archivos enviados al correo del usuario.
+    Procedimiento que hace uso de la libreria zipfiles, para la descompresion
+    de los archivos enviados al correo del usuario.
     '''
     if '.zip' not in nombre_archivo["filename"]:
         print("archivo erroneo")
-    else:    
+    else:
         print("Descomprimiendo archivos...")
-        archivo_a_descomprimir = zipfile.ZipFile(io.BytesIO(archivo)) #Al estar la informacion en bytes, se utiliza la libreria io para su descompresion.
+        archivo_a_descomprimir = zipfile.ZipFile(io.BytesIO(archivo))
+        #Al estar la informacion en bytes, se utiliza la libreria io para su descompresion.
         archivo_a_descomprimir.extractall()
         print("Archivos descomprimidos")
 
 
 def opciones_busqueda() -> None:
     '''
-    Procedimiento que solo printea por pantalla al usuario los metodos de busca por filtros que tiene a disposicion.
+    Procedimiento que solo printea por pantalla al usuario los
+    metodos de busca por filtros que tiene a disposicion.
     '''
     print('Opciones de consulta de mensaje:')
     print('\n .1 Si desea buscar por email remitente \n .2 Si desea buscar por email destinatario'
     '\n .3 Si desea buscar todos los correos que tienen un adjunto'
-    '\n .4 Por nombre de archivo adjunto \n .5 Si desea buscar por asuntos \n .6 Leidos \n .7 No leidos')
+    '\n .4 Por nombre de archivo adjunto'
+    '\n .5 Si desea buscar por asuntos \n.6 Leidos \n .7 No leidos')
 
 
 def consultar_mensaje(servicio: Resource) -> None:
     '''
-    Procedimiento que recibe las credenciales de gmail, como a su vez presenta al usuario los metodos que tendra para consultar 
+    Procedimiento que recibe las credenciales de gmail, como a su vez presenta
+    al usuario los metodos que tendra para consultar
     algun mensaje especificado de la manera que el usuario decida.
     '''
     opciones_busqueda()
     seleccionar_via_consulta = int(input("Eliga a continuacion: " ))
     if seleccionar_via_consulta == 1:
-        email_remitente = input("Escriba a continuacion el email del usuario que desea consultar sus correos: ")
-        cadena_string = "from:" + email_remitente #Al estar en formato str las partes del correo, simplemente se le suma al el email del determinado usuario
+        email_remitente = input(
+            "Escriba a continuacion el email del usuario que desea consultar sus correos: ")
+        cadena_string = "from:" + email_remitente
+        #Al estar en formato str las partes del correo, simplemente se
+        #le suma al el email del determinado usuario
         print(cadena_string)
     elif seleccionar_via_consulta == 2:
-        email_destinatario = input("Escriba el email del usuario  por el cual desea consultar los correos: ")
+        email_destinatario = input(
+            "Escriba el email del usuario  por el cual desea consultar los correos: ")
         cadena_string = "to:"+ email_destinatario
     elif seleccionar_via_consulta == 3:
-        cadena_string = "has:attachment" #Operador de busqueda que verifica si posee un adjunto
+        cadena_string = "has:attachment"
+        #Operador de busqueda que verifica si posee un adjunto
     elif seleccionar_via_consulta == 4:
-        archivo = input("Introduzca el nombre del archivo con su extension: ")
+        archivo = input(
+            "Introduzca el nombre del archivo con su extension: ")
         cadena_string = "filename:" + archivo
     elif seleccionar_via_consulta ==5:
-        asunto = input("Introduzca el asunto del correo a buscar: ")
-        cadena_string = "subject:" + asunto #Operador de busqueda que verifica segun el asunto del correo o similares
-    elif seleccionar_via_consulta == 6: 
-        cadena_string = "is:read" #Operador de busqueda que verifica si estan leidos los correos
+        asunto = input(
+            "Introduzca el asunto del correo a buscar: ")
+        cadena_string = "subject:" + asunto
+        #Operador de busqueda que verifica segun el asunto del correo o similares
+    elif seleccionar_via_consulta == 6:
+        cadena_string = "is:read"
+        #Operador de busqueda que verifica si estan leidos los correos
     elif seleccionar_via_consulta == 7:
-        cadena_string = "is:unread" #Operador de busqueda que verifica si no estan leidos los correos.
-    mensajes_email = buscar_email(servicio,cadena_string,['INBOX']) #Con el operador selecionado por el usuario se buscara todos los correos asociados.
+        cadena_string = "is:unread"
+        #Operador de busqueda que verifica si no estan leidos los correos.
+    mensajes_email = buscar_email(servicio,cadena_string,['INBOX'])
+    #Con el operador selecionado por el usuario se buscara todos los correos asociados.
     if mensajes_email == None:
         print("---"*5)
         print("\n #No hay mensajes del operador que busca, intentelo denuevo\n")
@@ -349,18 +385,22 @@ def consultar_mensaje(servicio: Resource) -> None:
         if seguir == "1":
             consultar_mensaje(servicio)
         print("---"*5)
-        
+
     else:
         for email_message in mensajes_email: #Se itera sobre el para conseguir las id de cada uno
             messageId = email_message['id']
-            email = detalles_del_email(servicio,messageId) #Se consiguen los detalles del cada mensaje
-            leer_correos(email) #Se los leera 
+            email = detalles_del_email(servicio,messageId)
+            #Se consiguen los detalles del cada mensaje
+            leer_correos(email)
+            #Se los leera
 
 
 def dividir_cuerpo_mensaje(servicio: Resource, partes: object) -> None:
     '''
-    Procedimiento que tiene como objetivo mostrar en pantalla la informacion del cuerpo del mensaje, si es un adjunto, si a su vez posee un adjunto entre otros.
-    recibe las partes del mismo y las credenciales de gmail para su decodificacion y su lectura legible.
+    Procedimiento que tiene como objetivo mostrar en pantalla la informacion del
+    cuerpo del mensaje, si es un adjunto, si a su vez posee un adjunto entre otros.
+    Recibe las partes del mismo y las credenciales de gmail para
+    su decodificacion y su lectura legible.
     '''
     if partes:
         for valores in partes: #Se itera sobre el objeto
@@ -369,37 +409,45 @@ def dividir_cuerpo_mensaje(servicio: Resource, partes: object) -> None:
             cuerpo = valores.get("body") #Se obtiene el cuerpo general del archivo
             informacion = cuerpo.get("data") #Informacion codificada del mensaje
             if valores.get("parts"):
-                dividir_cuerpo_mensaje(servicio, valores.get("parts")) 
+                dividir_cuerpo_mensaje(servicio, valores.get("parts"))
             if mimeType == "text/plain": #Si es de un tipo texto
                 if informacion:
-                    texto_mensaje = urlsafe_b64decode(informacion).decode() #Se lo decodifica para su lectura
+                    texto_mensaje = urlsafe_b64decode(informacion).decode()
+                    #Se lo decodifica para su lectura
                     print(texto_mensaje)
-            elif mimeType == "text/html": #Si es de un tipo html
+            elif mimeType == "text/html":
+                #Si es de un tipo html
                 if not archivo:
                     arc = "index.html"
                     print("Adjunto: ",arc)
             else:
                 print("Adjunto: ",archivo)
 
-      
+
 def leer_correos(servicio: Resource, mensajes_email: object) -> None:
     '''
-    Procedimiento que recibe los mensajes del email y se los printea en pantalla a una manera estetica,subdividiendo las partes
+    Procedimiento que recibe los mensajes del email y se los printea
+    en pantalla a una manera estetica,subdividiendo las partes
     del determinado objeto en sos nombres y valores
     '''
     payload = mensajes_email['payload']
     encabezados = payload.get("headers")
     partes = payload.get('parts')
-    for valores in encabezados: #Se itera sobre los valores dentro del objeto para conseguir sus distintas partes
+    for valores in encabezados:
+        #Se itera sobre los valores dentro del objeto para conseguir sus distintas partes
         nombre = valores.get("name")
         valor = valores.get("value")
-        if nombre.lower() == 'from': #Remitente
+        if nombre.lower() == 'from':
+            #Remitente
             print("De:", valor)
-        elif nombre.lower() == "to": #Se obtiene el destinatario
+        elif nombre.lower() == "to":
+            #Se obtiene el destinatario
             print("Para:", valor)
-        elif nombre.lower() == "subject": #Se obtiene el asunto
+        elif nombre.lower() == "subject":
+            #Se obtiene el asunto
             print("Asunto:", valor)
-        elif nombre.lower() == "date": #Fecha 
+        elif nombre.lower() == "date":
+            #Fecha
             print("Fecha:", valor)
     print("\n")
     dividir_cuerpo_mensaje(servicio, partes)
@@ -422,39 +470,53 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
 
 def generar_carpetas_de_una_evaluacion(servicio: Resource) -> None:
     '''
-    Procedimiento que tiene como objetivo crear las carpetas anidadaes en los 3 niveles especificados, con la informacion brindada por un correo especificado por el usuario
-    aun que dicho correo debe seguir ciertas condiciones, caso contrario, no creara dicha carpeta.
+    Procedimiento que tiene como objetivo crear las carpetas anidadaes en los 3 niveles
+    especificados, con la informacion brindada por un correo especificado por el usuario.
+    Aunque dicho correo debe seguir ciertas condiciones, caso contrario, no creara dicha carpeta.
     '''
-    correo_con_evaluacion = input("Ingrese a continuacion el correo que a enviado los datos de la evaluacion: ")#Se busca el correo que posee la informacion para crear las carpetas.
-    operador_de_busqueda_remitente = "from:" + correo_con_evaluacion #Los operadores que se deben cumplir, el correo ingresado por el usuario
-    operador_de_busqueda_no_leidos = "is:unread" #Que no se haya leido ya
-    operador_de_busqueda_adjunto = "has:attachment" #Y que posea un adjunto
-    operador_de_busqueda = operador_de_busqueda_remitente + " " + operador_de_busqueda_no_leidos + " " + operador_de_busqueda_adjunto #se los une para una condicion general
-    mensaje = buscar_email(servicio,operador_de_busqueda,["INBOX"] ) #se busca dicho mail con ciertas condiciones en la bandeja.
+    correo_con_evaluacion = input(
+        "Ingrese a continuacion el correo que a enviado los datos de la evaluacion: ")
+    #Se busca el correo que posee la informacion para crear las carpetas.
+    operador_de_busqueda_remitente = "from:" + correo_con_evaluacion
+    #Los operadores que se deben cumplir, el correo ingresado por el usuario
+    operador_de_busqueda_no_leidos = "is:unread"
+    #Que no se haya leido ya
+    operador_de_busqueda_adjunto = "has:attachment"
+    #Y que posea un adjunto
+    operador_de_busqueda = operador_de_busqueda_remitente + " " +\
+        operador_de_busqueda_no_leidos + " " + operador_de_busqueda_adjunto
+    #se los une para una condicion general
+    mensaje = buscar_email(servicio,operador_de_busqueda,["INBOX"] )
+    #se busca dicho mail con ciertas condiciones en la bandeja.
     if mensaje == None:
         print("No hay nuevos correos de dicho correo")
         seguir = input("Si desea reingresar un correo presione 1, caso contrario 2")
         if seguir == "1":
-            generar_carpetas_de_una_evaluacion(servicio) 
+            generar_carpetas_de_una_evaluacion(servicio)
     else:
-        for email_mensaje in mensaje: #Se itera sobre el para conseguir las id de cada uno
+        for email_mensaje in mensaje:
+            #Se itera sobre el para conseguir las id de cada uno
             id_mensaje = email_mensaje['id']
             email = detalles_del_email(servicio,id_mensaje)
         payload = email['payload']
         encabezados = payload.get("headers")
-        for valores in encabezados: 
+        for valores in encabezados:
             nombre = valores.get("name")
             valor = valores.get("value")
-            if nombre.lower() == 'subject': #se obtiene el asunto para poder crear la carpeta
+            if nombre.lower() == 'subject':
+                #se obtiene el asunto para poder crear la carpeta
                 asunto = valor
-        descargar_adjunto(servicio,"me",id_mensaje) #se descarga el adjunto y se crea un bin del .zip
-        generar_carpeta_con_asunto(asunto) #finalmente se genera la carpeta
+        descargar_adjunto(servicio,"me",id_mensaje)
+        #se descarga el adjunto y se crea un bin del .zip
+        generar_carpeta_con_asunto(asunto)
+        #finalmente se genera la carpeta
 
 
 def generar_carpeta_con_asunto(asunto: str) -> None:
     '''
-    Procedimiento que crea la carpeta de 3 niveles con el asunto dado y los archivos descomprimidos, con dichos nombres de los archivos
-    y la informacion que contienen los mismos
+    Procedimiento que crea la carpeta de 3 niveles con el asunto dado y los archivos
+    descomprimidos, con dichos nombres de los archivos y la
+    informacion que contienen los mismos
     '''
     ruta = os.getcwd()
     os.mkdir(asunto)
@@ -462,9 +524,10 @@ def generar_carpeta_con_asunto(asunto: str) -> None:
     with open(ruta + "\\docentes.csv", mode = 'r', newline='', encoding="UTF-8") as archivo_csv:
         csv_reader = csv.reader(archivo_csv, delimiter=',')
         for columna in csv_reader:
-            nombre_profesores = columna[0] 
+            nombre_profesores = columna[0]
             os.mkdir(nombre_profesores)
-    with open(ruta + "\\docente-alumnos.csv", mode = 'r', newline = '', encoding="UTF-8") as archivo2_csv:
+    with open(ruta + "\\docente-alumnos.csv",\
+        mode = 'r', newline = '', encoding="UTF-8") as archivo2_csv:
         csv_reader2 = csv.reader(archivo2_csv, delimiter=',')
         for columna in csv_reader2:
             nombre_alumnos = columna[1]
@@ -520,7 +583,7 @@ def menu_listar_archivos() -> None:
             print(f"La ruta actual es {ruta_actual}")
         elif opcion == 5:
             cerrar_menu = True
-        
+
 
 def listar_archivos_local() -> None:
     '''
@@ -568,7 +631,7 @@ def menu_crear_archivo_y_carpeta() -> None:
             else:
                 print(f"La carpeta {nombre} fue creada satisfactoriamente.")
         elif opcion == 3:
-                cerrar_menu = True
+            cerrar_menu = True
 
 
 def main () -> None:
