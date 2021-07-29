@@ -1,6 +1,3 @@
-main
-
-
 import os
 from posixpath import lexists, split
 from googleapiclient.discovery import Resource
@@ -16,7 +13,7 @@ import os
 import csv
 
 
-def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)->object:
+def crear_correo(remitente: str, destinatario: str, asunto: str, texto_mensaje: str) -> object:
     '''
     Pre:recibe al usuario que envia, como el destinatario, el asunto del mensaje, y el cuerpo a escribir.
 
@@ -31,7 +28,7 @@ def crear_correo(remitente:str, destinatario:str, asunto:str, texto_mensaje:str)
     return {'raw':raw_msg.decode('utf-8')}
 
 
-def enviar_correo(servicio:Resource, usuario_id:str, mensaje:object)->object:
+def enviar_correo(servicio: Resource, usuario_id: str, mensaje: object) -> object:
     '''
     Pre: recibe la credenciales de gmail, como la id del usuario y el cuerpo del mensaje en objeto.
 
@@ -46,7 +43,7 @@ def enviar_correo(servicio:Resource, usuario_id:str, mensaje:object)->object:
     return message
 
 
-def leer_archivo_alumnos(archivo:str,diccionario_datos:dict,opcion:int)->None:
+def leer_archivo_alumnos(archivo: str, diccionario_datos: dict, opcion: int) -> None:
     '''
     Procedimiento que recibe el archivo de los alumnos y modifica un diccionario vacio a partir del mismo, sera usado para las validaciones.
     dependiendo la opcion que reciba, la lectura y la creacion del diccionario variara.Dicha opcion es arbitraria decidia por el creador de la apliacion.
@@ -69,7 +66,7 @@ def leer_archivo_alumnos(archivo:str,diccionario_datos:dict,opcion:int)->None:
                 diccionario_datos[columna[1]] = columna[0] #se le asigna a la determinada llave el valor , la llave tomando al profesor y el valor el nombre del alumno
 
 
-def validaciones(email:str,asunto:str,nombre_archivo_adjunto:str,archivo_alumnos:str)->bool:
+def validaciones(email: str,asunto: str, nombre_archivo_adjunto: str, archivo_alumnos: str) -> bool:
     '''
     Pre:recibe el email, el asunto, el nombre del archivo adjunto y el archivo del correspondiente mensaje
 
@@ -96,7 +93,7 @@ def validaciones(email:str,asunto:str,nombre_archivo_adjunto:str,archivo_alumnos
     return validar
 
 
-def eliminar_caracteres(cadena_str:str)->str:
+def eliminar_caracteres(cadena_str: str) -> str:
     '''
 
     Esta funcion tiene como objetivo obtener solo el correo del valor que se obtiene de From: y eliminar asi los archivos innecesarios
@@ -114,7 +111,7 @@ def eliminar_caracteres(cadena_str:str)->str:
     return email
 
 
-def definir_errores(correo:object,archivo_alumnos:str)->bool:
+def definir_errores(correo: object, archivo_alumnos: str) -> bool:
     '''
     Pre: recibe el correo y sus partes, como a su vez la dirrecion del archivo que contiene informacion de los alumnos.
 
@@ -140,7 +137,7 @@ def definir_errores(correo:object,archivo_alumnos:str)->bool:
     return validar_entrega
 
 
-def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->None:
+def recepcion_de_entregas(servicio: Resource, correo: object, archivo_alumnos: str) -> None:
 
     '''
 
@@ -173,7 +170,7 @@ def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->
     return padron
 
 
-def actualizar_entregas(servicio:Resource,archivo_alumnos:str,archivo_docente_alumno:str)->None:
+def actualizar_entregas(servicio: Resource, archivo_alumnos: str, archivo_docente_alumno: str) -> None:
     '''
     
     Procedimiento que recibe solamente el archivo de alumnos y el de docente con su alumno respectivo, y tiene como objetivo actualizar las entregas llegadas por los alumnos
@@ -195,7 +192,7 @@ def actualizar_entregas(servicio:Resource,archivo_alumnos:str,archivo_docente_al
             anidar_archivos_alumno(servicio,padron,carpeta_evaluacion,archivo_alumnos,archivo_docente_alumno,id_mensaje)
 
 
-def anidar_archivos_alumno(servicio:Resource,padron:str,carpeta_evaluacion:str,archivo_alumnos:str,archivo_docente_alumno:str,id_mensaje:str)->None:
+def anidar_archivos_alumno(servicio: Resource, padron: str, carpeta_evaluacion: str ,archivo_alumnos: str, archivo_docente_alumno: str, id_mensaje: str)->None:
     '''
     Procedimiento que tiene como objetivo acceder a las distintas carpetas del sistemas de carpteas, leyendo los archivos y los el padron dado
     para luego descomprimirlo en la carpeta correspondiente  
@@ -212,7 +209,7 @@ def anidar_archivos_alumno(servicio:Resource,padron:str,carpeta_evaluacion:str,a
     descargar_adjunto(servicio,"me",id_mensaje)
      
 
-def buscar_email(servicio:Resource,cadena_string:str,etiquetas_id:str)->object:
+def buscar_email(servicio: Resource, cadena_string: str, etiquetas_id: str) -> object:
     '''
 
     Pre: recibe las credenciales de gmail, una cadena string que sera un operador de busqueda, como la etiqueta tambien.
@@ -234,7 +231,7 @@ def buscar_email(servicio:Resource,cadena_string:str,etiquetas_id:str)->object:
     return items_mensajes
 
 
-def detalles_del_email(servicio:Resource,id_mensaje:str,format='metadata',metadata_headers:list = [])->object:
+def detalles_del_email(servicio: Resource, id_mensaje: str, format='metadata', metadata_headers: list = []) -> object:
     '''
 
     Pre: recibe las credenciales de gmail, la id unica del mensaje, como el formato de codoficacion y la metadata de los encabezados
@@ -242,7 +239,6 @@ def detalles_del_email(servicio:Resource,id_mensaje:str,format='metadata',metada
     Post: se obtiene todo los datos del mensaje en un formato completo, y se los retorna en un objeto para su uso a posterior.
 
     '''
-
     try:
         detalles_mensaje = servicio.users().messages().get(userId = 'me',id = id_mensaje,format = "full",metadataHeaders = metadata_headers).execute()
     except Exception as e:
@@ -251,7 +247,7 @@ def detalles_del_email(servicio:Resource,id_mensaje:str,format='metadata',metada
     return detalles_mensaje
 
 
-def descargar_adjunto(servicio:Resource,usuario_id:str,mensaje_id:str,directorio:str = '')->None:
+def descargar_adjunto(servicio: Resource, usuario_id: str, mensaje_id: str, directorio: str = '') -> None:
     '''
     Procedimiento que recibe las credenciales de gmail, el usuario de la aplicacion, la id unica del mensaje y el directorio de descarga
     tiene como objetivo acceder al cuerpo del mensaje para asi descargar los archivos adjuntos que posea el mismo.
@@ -281,7 +277,7 @@ def descargar_adjunto(servicio:Resource,usuario_id:str,mensaje_id:str,directorio
         print ('A ocurrido un error: {%s}'.format(error))
 
 
-def descomprimir_archivo(archivo:bytes,nombre_archivo:str)->None:
+def descomprimir_archivo(archivo: bytes, nombre_archivo: str) -> None:
     '''
     Procedimiento que hace uso de la libreria zipfiles, para la descompresion de los archivos enviados al correo del usuario.
     '''
@@ -294,7 +290,7 @@ def descomprimir_archivo(archivo:bytes,nombre_archivo:str)->None:
         print("Archivos descomprimidos")
 
 
-def opciones_busqueda()->None:
+def opciones_busqueda() -> None:
     '''
     Procedimiento que solo printea por pantalla al usuario los metodos de busca por filtros que tiene a disposicion.
     '''
@@ -304,7 +300,7 @@ def opciones_busqueda()->None:
     '\n .4 Por nombre de archivo adjunto \n .5 Si desea buscar por asuntos \n .6 Leidos \n .7 No leidos')
 
 
-def consultar_mensaje(servicio:Resource):
+def consultar_mensaje(servicio: Resource) -> None:
     '''
 
     Procedimiento que recibe las credenciales de gmail, como a su vez presenta al usuario los metodos que tendra para consultar 
@@ -348,14 +344,13 @@ def consultar_mensaje(servicio:Resource):
             leer_correos(email) #Se los leera 
 
 
-def dividir_cuerpo_mensaje(servicio:Resource, partes:object)->None:
+def dividir_cuerpo_mensaje(servicio: Resource, partes: object) -> None:
     '''
 
     Procedimiento que tiene como objetivo mostrar en pantalla la informacion del cuerpo del mensaje, si es un adjunto, si a su vez posee un adjunto entre otros.
     recibe las partes del mismo y las credenciales de gmail para su decodificacion y su lectura legible.
 
     '''
-
     if partes:
         for valores in partes: #Se itera sobre el objeto
             archivo = valores.get("filename") #Se obtiene el nombre del archivo en caso de tener
@@ -376,7 +371,7 @@ def dividir_cuerpo_mensaje(servicio:Resource, partes:object)->None:
                 print("Adjunto: ",archivo)
                 
 
-def leer_correos(servicio:Resource,mensajes_email:object)->None:
+def leer_correos(servicio: Resource, mensajes_email: object) -> None:
     '''
 
     Procedimiento que recibe los mensajes del email y se los printea en pantalla a una manera estetica,subdividiendo las partes
@@ -416,7 +411,7 @@ def validar_opcion(numero_min: int, numero_max: int) -> int:
     return int(decision)
 
 
-def generar_carpetas_de_una_evaluacion(servicio:Resource)->None:
+def generar_carpetas_de_una_evaluacion(servicio: Resource) -> None:
     '''
     Procedimiento que tiene como objetivo crear las carpetas anidadaes en los 3 niveles especificados, con la informacion brindada por un correo especificado por el usuario
     aun que dicho correo debe seguir ciertas condiciones, caso contrario, no creara dicha carpeta.
@@ -480,6 +475,9 @@ def generar_carpeta_con_asunto(asunto: str) -> None:
 
 
 def menu_listar_archivos() -> None:
+    '''
+    Procedimiento que permite al usuario navegar por las carpetas y listar subcarpetas/archivos.
+    '''
     print(f"La ruta actual es {os.getcwd()}")
     cerrar_menu = False
     while not cerrar_menu:
@@ -518,6 +516,9 @@ def menu_listar_archivos() -> None:
 
 
 def listar_archivos_local() -> None:
+    '''
+    Procedimiento que muestra los archivos y subcarpetas en el directorio actual.
+    '''
     contador = 1
     print("Listado de archivos de la carpeta actual (y subcarpetas): ")
     directorio = os.getcwd()
@@ -531,7 +532,10 @@ def listar_archivos_local() -> None:
         contador += 1
 
 
-def menu_crear_archivo_y_carpeta():
+def menu_crear_archivo_y_carpeta() -> None:
+    '''
+    Procedimiento que permite al usuario crear subcarpetas/archivos en determinado directorio.
+    '''
     ruta_actual = os.getcwd()
     print(f"Los archivos se crearan en la carpeta actual. Ruta: {ruta_actual}")
     cerrar_menu = False
@@ -561,6 +565,9 @@ def menu_crear_archivo_y_carpeta():
 
 
 def main () -> None:
+    '''
+    Función principal del programa. Menú inicial.
+    '''
     cerrar_menu = False
     while not cerrar_menu:
         print("""
@@ -596,7 +603,7 @@ def main () -> None:
                 archivo_docente_alumno = open("docente-alumnos.csv")
                 archivo_alumnos = "alumnos.csv"
                 archivo_docente_alumno = 'docente-alumnos.csv'
-                actualizar_entregas(servicio,archivo_alumnos,archivo_docente_alumno)
+                actualizar_entregas(servicio, archivo_alumnos, archivo_docente_alumno)
             except FileNotFoundError:
                 print("El archivo alumnos.csv aun no se a descomprimido")
         elif opcion == 8:
