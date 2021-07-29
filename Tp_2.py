@@ -131,12 +131,14 @@ def definir_errores(correo:object,archivo_alumnos:str)->bool:
     return validar_entrega
 
 def recepcion_de_entregas(servicio:Resource,correo:object,archivo_alumnos:str)->None:
+
     '''
 
     Procedimiento que tiene como objetivo verificar el correo y a partir de alli , construir el correo que se enviara a los alumnos
     confirmando o no su entrega
 
     '''
+    
     validar_entrega = definir_errores(correo,archivo_alumnos) #Validacion del correo
     asunto = "Entrega evaluacion" 
     payload = correo["payload"]
@@ -532,6 +534,13 @@ def menu_crear_archivo_y_carpeta():
                 cerrar_menu = True
 
 def main () -> None:
+    '''
+
+    Ahi estara el menu general del programa, teniendo acceso a sus distintas funcionalidades
+    
+    como accesos
+
+    '''
     servicio = obtener_servicio()
     cerrar_menu = False
     while not cerrar_menu:
